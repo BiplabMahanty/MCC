@@ -1,0 +1,25 @@
+# Environment overrides and secrets
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+!**/.env.example
+
+# Dependencies and generated output
+**/node_modules/
+**/.expo/
+**/dist/
+**/coverage/
+**/logs/
+**/*.log
+
+# Expo continuous native generation
+mobile/android/
+mobile/ios/
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
