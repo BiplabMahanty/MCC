@@ -8,6 +8,9 @@ const asyncHandler = require('../../utils/asyncHandler');
 
 const studentAttemptRoutes = require('../student/attempt.routes');
 const studentResultsRoutes = require('../student/results.routes');
+const studentAttendanceRoutes = require('../student/attendance.routes');
+const studentLearningRoutes = require('../student/learning.routes');
+const studentFeesRoutes = require('../student/fees.routes');
 
 const router = express.Router();
 
@@ -19,5 +22,8 @@ router.get('/subjects', asyncHandler(studentController.getSubjects));
 router.get('/teachers', asyncHandler(studentController.getTeachers));
 router.use('/', studentAttemptRoutes);
 router.use('/', studentResultsRoutes);
+router.use('/', studentAttendanceRoutes);
+router.use('/', studentLearningRoutes);
+router.use('/', studentFeesRoutes);
 
 module.exports = router;

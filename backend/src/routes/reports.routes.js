@@ -1,0 +1,14 @@
+const express = require('express');
+const { z } = require('zod');
+const controller = require('../controllers/reports.controller');
+const authenticate = require('../middleware/authenticate');
+const authorize = require('../middleware/authorize');
+const validate = require('../middleware/validate');
+const asyncHandler = require('../utils/asyncHandler');
+const router = express.Router();
+const id = z.object({ id: z.string().regex(/^[a-f\d]{24}$/i) });
+router.use(authenticate, authorize('admin'));
+router.get('/', asyncHandler(controller.list));
+router.get('/:id', validate(id, 'params'), asyncHandler(controller.get));
+router.post('/', validate(z.object({ type: z.enum(['exam', 'fees', 'attendance', 'performance']), filters: z.record(z.string(), z.unknown()).optional() })), asyncHandler(controller.request));
+module.exports = router;

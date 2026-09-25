@@ -1,0 +1,14 @@
+const express = require('express');
+const { z } = require('zod');
+const controller = require('../controllers/notifications.controller');
+const authenticate = require('../middleware/authenticate');
+const authorize = require('../middleware/authorize');
+const validate = require('../middleware/validate');
+const asyncHandler = require('../utils/asyncHandler');
+const router = express.Router();
+const id = z.object({ id: z.string().regex(/^[a-f\d]{24}$/i) });
+router.use(authenticate);
+router.get('/', asyncHandler(controller.mine));
+router.patch('/:id/read', validate(id, 'params'), asyncHandler(controller.read));
+router.post('/announcement', authorize('admin'), validate(z.object({ title: z.string().min(2).max(160), body: z.string().min(1).max(2000), type: z.enum(['announcement', 'exam', 'assignment', 'fee', 'result']).default('announcement'), roles: z.array(z.enum(['admin', 'teacher', 'student'])).min(1) })), asyncHandler(controller.announce));
+module.exports = router;

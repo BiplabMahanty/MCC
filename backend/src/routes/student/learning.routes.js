@@ -1,0 +1,11 @@
+const express = require('express');
+const { z } = require('zod');
+const controller = require('../../controllers/learning.controller');
+const validate = require('../../middleware/validate');
+const asyncHandler = require('../../utils/asyncHandler');
+const router = express.Router();
+const id = z.object({ id: z.string().regex(/^[a-f\d]{24}$/i) });
+const submission = z.object({ note: z.string().max(1000).optional(), files: z.array(z.object({ name: z.string().max(180), url: z.string().url(), storageKey: z.string().min(1), mimeType: z.string().max(100), size: z.number().int().positive().max(25 * 1024 * 1024) })).min(1).max(10) });
+router.get('/learning', asyncHandler(controller.mine));
+router.post('/assignments/:id/submission', validate(id, 'params'), validate(submission), asyncHandler(controller.submit));
+module.exports = router;

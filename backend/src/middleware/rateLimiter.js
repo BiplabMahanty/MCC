@@ -7,6 +7,7 @@ const apiRateLimiter = rateLimit({
   limit: env.rateLimitMax,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
+  skip: (req) => req.path === '/health',
   message: {
     status: 'error',
     message: 'Too many requests. Please try again later.',
@@ -18,6 +19,7 @@ const loginRateLimiter = rateLimit({
   limit: env.authRateLimitMax,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
+  skipSuccessfulRequests: true,
   message: {
     status: 'error',
     code: 'AUTH_RATE_LIMIT_EXCEEDED',

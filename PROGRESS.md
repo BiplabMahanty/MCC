@@ -308,6 +308,27 @@ Docker, MongoDB, Redis, and Android ADB are unavailable in the current execution
 - The exam engine syncs answers every 8 seconds; network failures during sync are silently retried on the next interval.
 - The process-local rate-limit store and current Expo CLI advisory remain as documented in earlier phases.
 
+## Phase 9 - Admin Analytics
+
+Status: Implemented; live database, Redis, and Android runtime verification pending
+
+### Done
+
+- Added an Admin-only, institute-scoped analytics API with optional inclusive `from`/`to` result dates.
+- Added MongoDB aggregation reports for result summaries, batch performance, teacher exam workload, and exam performance.
+- Added Redis-backed 60-second caching which safely falls back to fresh MongoDB data if Redis is unavailable.
+- Added a mobile Admin Analytics screen with institute metrics, batch performance, teacher workload, and performance reports.
+
+### Verification completed
+
+- Backend lint and formatting checks passed.
+- Existing Admin route tests passed (7/7). The test process reports the existing unavailable-Redis/BullMQ open-handle warnings after completion.
+
+### Pending environment verification
+
+- Exercise the analytics endpoint with live MongoDB and Redis data, including date-range filtering and cache expiry.
+- Rebuild the Android development client and visually verify the Admin Analytics screen.
+
 ## Pending phases
 
 ## Phase 7 - Auto Evaluation & Results
