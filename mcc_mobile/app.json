@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Coaching Management System",
+    "slug": "coaching-management-system",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "csm",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.csm.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F97316",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.csm.mobile"
+    },
+    "plugins": [
+      "expo-dev-client",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Coaching Management System to select question images and diagrams."
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
