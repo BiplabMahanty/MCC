@@ -29,13 +29,15 @@ function getCloudinary() {
   return cloudinary;
 }
 
-async function createQuestionImageUpload(instituteId, input) {
+async function createImageUpload(instituteId, input, category) {
   const client = getCloudinary();
-  const publicId = `institutes/${instituteId}/questions/${randomUUID()}`;
+  const folder = `institutes/${instituteId}/${category}`;
+  const publicId = randomUUID();
+  const storageKey = `${folder}/${publicId}`;
   const timestamp = Math.floor(Date.now() / 1000);
 
   const paramsToSign = {
-    folder: `institutes/${instituteId}/questions`,
+    folder,
     public_id: publicId,
     timestamp,
     overwrite: false,
@@ -47,12 +49,12 @@ async function createQuestionImageUpload(instituteId, input) {
   );
 
   const uploadUrl = `https://api.cloudinary.com/v1_1/${env.cloudinaryCloudName}/image/upload`;
-  const publicUrl = `https://res.cloudinary.com/${env.cloudinaryCloudName}/image/upload/${publicId}`;
+  const publicUrl = `https://res.cloudinary.com/${env.cloudinaryCloudName}/image/upload/${storageKey}`;
 
   return {
     uploadUrl,
     url: publicUrl,
-    storageKey: publicId,
+    storageKey,
     expiresIn: env.cloudinarySignedUrlTtlSeconds,
     headers: {
       'Content-Type': input.mimeType,
@@ -62,10 +64,18 @@ async function createQuestionImageUpload(instituteId, input) {
       timestamp: String(timestamp),
       signature,
       public_id: publicId,
-      folder: `institutes/${instituteId}/questions`,
+      folder,
       overwrite: 'false',
     },
   };
+}
+
+function createQuestionImageUpload(instituteId, input) {
+  return createImageUpload(instituteId, input, 'questions');
+}
+
+function createProfileImageUpload(instituteId, input) {
+  return createImageUpload(instituteId, input, 'profiles');
 }
 
 async function verifyQuestionImage(image) {
@@ -98,6 +108,7 @@ async function verifyQuestionImage(image) {
 
 module.exports = {
   createQuestionImageUpload,
+  createProfileImageUpload,
   storageConfigured,
   verifyQuestionImage,
 };

@@ -59,9 +59,7 @@ export function deleteEntity(entityType, id) {
 }
 
 export async function uploadProfileImage(asset) {
-  const sourceResponse = await fetch(asset.uri);
-  const blob = await sourceResponse.blob();
-  const detectedMimeType = asset.mimeType || blob.type || 'image/jpeg';
+  const detectedMimeType = asset.mimeType || 'image/jpeg';
   const mimeType =
     detectedMimeType === 'image/jpg' ? 'image/jpeg' : detectedMimeType;
   const allowed = ['image/jpeg', 'image/png', 'image/webp'];
@@ -70,21 +68,30 @@ export async function uploadProfileImage(asset) {
       code: 'INVALID_FILE_TYPE',
     });
   }
-  const size = asset.fileSize || blob.size;
+  const size = asset.fileSize;
+  if (!size) {
+    throw new ApiError('Could not determine the image size. Try selecting it again.', {
+      code: 'INVALID_FILE_SIZE',
+    });
+  }
   if (size > 5 * 1024 * 1024) {
     throw new ApiError('Image must be 5 MB or smaller.', {
       code: 'FILE_TOO_LARGE',
     });
   }
   const fileName = asset.fileName || `profile.${mimeType.split('/')[1]}`;
-  const signed = await apiRequest('/admin/uploads/question-image', {
+  const signed = await apiRequest('/admin/uploads/profile-image', {
     method: 'POST',
     body: { fileName, mimeType, size },
     auth: true,
   });
   const formData = new FormData();
   Object.entries(signed.data.fields).forEach(([k, v]) => formData.append(k, v));
-  formData.append('file', blob);
+  formData.append('file', {
+    uri: asset.uri,
+    name: fileName,
+    type: mimeType,
+  });
   const upload = await fetch(signed.data.uploadUrl, {
     method: 'POST',
     body: formData,
