@@ -77,7 +77,7 @@ async function refreshSession(currentRefreshToken) {
         'refreshTokens.$.expiresAt': nextTokenRecord.expiresAt,
       },
     },
-    { new: true, runValidators: true },
+    { returnDocument: 'after', runValidators: true },
   );
 
   if (!user) {
