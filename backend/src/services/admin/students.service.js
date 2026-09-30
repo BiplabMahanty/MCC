@@ -24,5 +24,6 @@ module.exports = createPeopleService({
     'dateOfBirth',
     'guardianName',
     'guardianPhone',
+    'profileImage',
   ],
 });

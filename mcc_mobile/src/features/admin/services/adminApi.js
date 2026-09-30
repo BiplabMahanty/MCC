@@ -1,4 +1,4 @@
-import { apiRequest } from '../../../services/apiClient';
+import { ApiError, apiRequest } from '../../../services/apiClient';
 
 function queryString(params) {
   const searchParams = new URLSearchParams();
@@ -56,4 +56,44 @@ export function deleteEntity(entityType, id) {
     method: 'DELETE',
     auth: true,
   });
+}
+
+export async function uploadProfileImage(asset) {
+  const sourceResponse = await fetch(asset.uri);
+  const blob = await sourceResponse.blob();
+  const detectedMimeType = asset.mimeType || blob.type || 'image/jpeg';
+  const mimeType =
+    detectedMimeType === 'image/jpg' ? 'image/jpeg' : detectedMimeType;
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(mimeType)) {
+    throw new ApiError('Use a PNG, JPG, or WEBP image.', {
+      code: 'INVALID_FILE_TYPE',
+    });
+  }
+  const size = asset.fileSize || blob.size;
+  if (size > 5 * 1024 * 1024) {
+    throw new ApiError('Image must be 5 MB or smaller.', {
+      code: 'FILE_TOO_LARGE',
+    });
+  }
+  const fileName = asset.fileName || `profile.${mimeType.split('/')[1]}`;
+  const signed = await apiRequest('/admin/uploads/question-image', {
+    method: 'POST',
+    body: { fileName, mimeType, size },
+    auth: true,
+  });
+  const formData = new FormData();
+  Object.entries(signed.data.fields).forEach(([k, v]) => formData.append(k, v));
+  formData.append('file', blob);
+  const upload = await fetch(signed.data.uploadUrl, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!upload.ok) {
+    throw new ApiError('The image upload failed.', {
+      status: upload.status,
+      code: 'UPLOAD_FAILED',
+    });
+  }
+  return { url: signed.data.url, storageKey: signed.data.storageKey, mimeType };
 }

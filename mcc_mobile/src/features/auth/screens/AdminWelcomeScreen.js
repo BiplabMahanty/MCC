@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AuthBackground from '../components/AuthBackground';
 import AuthPrimaryButton from '../components/AuthPrimaryButton';
+import env from '../../../config/env';
 
 const palette = {
   mint: '#5BE99E',
@@ -56,7 +57,7 @@ export default function AdminWelcomeScreen({ navigation }) {
         >
           <View style={styles.brandArea}>
             <GraduationCap />
-            <Text style={styles.title}>Mahapatra{`\n`}Coaching Center</Text>
+            <Text style={styles.title}>{env.instituteName.replace(' ', '\n')}</Text>
             <Text style={styles.tagline}>Learn · Grow · Succeed</Text>
           </View>
 

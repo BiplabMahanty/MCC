@@ -9,6 +9,7 @@
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "seed:admin": "node src/scripts/seedAdmin.js",
+    "migrate:unique-names": "node src/scripts/migrateUniqueNameIndexes.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

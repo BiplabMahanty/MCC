@@ -45,7 +45,7 @@ export default function HealthScreen() {
         <View style={styles.brandMark}>
           <Text style={styles.brandMarkText}>CSM</Text>
         </View>
-        <Text style={styles.eyebrow}>COACHING MANAGEMENT SYSTEM</Text>
+        <Text style={styles.eyebrow}>{env.instituteName.toUpperCase()}</Text>
         <Text style={styles.heading}>Project foundation</Text>
         <Text style={styles.subtitle}>
           Mobile and backend infrastructure status

@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import AppButton from '../../../components/common/AppButton';
 import AppInput from '../../../components/common/AppInput';
+import DateTimePickerField from '../../../components/common/DateTimePickerField';
 import Screen from '../../../components/common/Screen';
 import colors from '../../../theme/colors';
 import AdminHeader from '../../admin/components/AdminHeader';
@@ -176,45 +177,23 @@ export default function ExamFormScreen({ navigation, route }) {
           value={draft.durationMinutes}
         />
 
-        <View style={styles.row}>
-          <View style={styles.half}>
-            <AppInput
-              error={errors.startTime}
-              label="Start date (YYYY-MM-DD)"
-              onChangeText={(v) => setField('startDate', v)}
-              placeholder="2025-12-01"
-              value={draft.startDate}
-            />
-          </View>
-          <View style={styles.half}>
-            <AppInput
-              label="Start time (HH:MM UTC)"
-              onChangeText={(v) => setField('startTime', v)}
-              placeholder="09:00"
-              value={draft.startTime}
-            />
-          </View>
-        </View>
+        <DateTimePickerField
+          dateValue={draft.startDate}
+          error={errors.startTime}
+          label="Start date & time (UTC)"
+          onChangeDateStr={(v) => setField('startDate', v)}
+          onChangeTimeStr={(v) => setField('startTime', v)}
+          timeValue={draft.startTime}
+        />
 
-        <View style={styles.row}>
-          <View style={styles.half}>
-            <AppInput
-              error={errors.endTime}
-              label="End date (YYYY-MM-DD)"
-              onChangeText={(v) => setField('endDate', v)}
-              placeholder="2025-12-01"
-              value={draft.endDate}
-            />
-          </View>
-          <View style={styles.half}>
-            <AppInput
-              label="End time (HH:MM UTC)"
-              onChangeText={(v) => setField('endTime', v)}
-              placeholder="10:00"
-              value={draft.endTime}
-            />
-          </View>
-        </View>
+        <DateTimePickerField
+          dateValue={draft.endDate}
+          error={errors.endTime}
+          label="End date & time (UTC)"
+          onChangeDateStr={(v) => setField('endDate', v)}
+          onChangeTimeStr={(v) => setField('endTime', v)}
+          timeValue={draft.endTime}
+        />
 
         <View style={styles.row}>
           <View style={styles.half}>

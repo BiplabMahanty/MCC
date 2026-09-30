@@ -70,10 +70,13 @@ export async function uploadQuestionImage(asset) {
     body: { fileName, mimeType, size },
     auth: true,
   });
+  const formData = new FormData();
+  Object.entries(signed.data.fields).forEach(([k, v]) => formData.append(k, v));
+  formData.append('file', blob);
+
   const upload = await fetch(signed.data.uploadUrl, {
-    method: 'PUT',
-    headers: signed.data.headers,
-    body: blob,
+    method: 'POST',
+    body: formData,
   });
 
   if (!upload.ok) {

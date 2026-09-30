@@ -4,6 +4,7 @@ const courseSchema = new mongoose.Schema(
   {
     instituteId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Institute',
       required: true,
       index: true,
     },
@@ -47,6 +48,10 @@ const courseSchema = new mongoose.Schema(
 
 courseSchema.index(
   { instituteId: 1, code: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);
+courseSchema.index(
+  { instituteId: 1, name: 1 },
   { unique: true, partialFilterExpression: { isDeleted: false } },
 );
 courseSchema.index({ instituteId: 1, isDeleted: 1, isActive: 1, name: 1 });

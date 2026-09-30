@@ -11,7 +11,7 @@ const attendanceEntrySchema = new mongoose.Schema(
 
 const attendanceSchema = new mongoose.Schema(
   {
-    instituteId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+    instituteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Institute', required: true, index: true },
     batchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch', required: true, index: true },
     date: { type: Date, required: true },
     entries: { type: [attendanceEntrySchema], default: [] },

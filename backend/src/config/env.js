@@ -54,6 +54,8 @@ const env = Object.freeze({
   seedAdminEmail: process.env.SEED_ADMIN_EMAIL,
   seedAdminPassword: process.env.SEED_ADMIN_PASSWORD,
   seedAdminInstituteId: process.env.SEED_ADMIN_INSTITUTE_ID,
+  seedAdminInstituteName: process.env.SEED_ADMIN_INSTITUTE_NAME,
+  instituteApiKey: process.env.INSTITUTE_API_KEY,
 });
 
 module.exports = env;

@@ -1,9 +1,13 @@
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 const mongoose = require('mongoose');
 
 const { connectMongo, disconnectMongo } = require('../config/database');
 const env = require('../config/env');
 const logger = require('../config/logger');
 const { ROLES } = require('../constants/roles');
+const Institute = require('../models/Institute');
 const User = require('../models/User');
 
 function assertSeedConfig() {
@@ -12,6 +16,7 @@ function assertSeedConfig() {
     SEED_ADMIN_EMAIL: env.seedAdminEmail,
     SEED_ADMIN_PASSWORD: env.seedAdminPassword,
     SEED_ADMIN_INSTITUTE_ID: env.seedAdminInstituteId,
+    SEED_ADMIN_INSTITUTE_NAME: env.seedAdminInstituteName,
   };
 
   const missing = Object.entries(required)
@@ -43,8 +48,25 @@ async function seedAdmin() {
   assertSeedConfig();
   await connectMongo();
 
+  // Upsert the Institute document using the fixed seed ID
+  const instituteId = new mongoose.Types.ObjectId(env.seedAdminInstituteId);
+  const existingInstitute = await Institute.findById(instituteId);
+
+  if (!existingInstitute) {
+    await Institute.create({
+      _id: instituteId,
+      name: env.seedAdminInstituteName.trim(),
+      slug: env.seedAdminInstituteName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      contactEmail: env.seedAdminEmail.trim().toLowerCase(),
+      plan: 'free',
+    });
+    logger.info({ instituteId: env.seedAdminInstituteId }, 'Seed institute created');
+  } else {
+    logger.info({ instituteId: env.seedAdminInstituteId }, 'Seed institute already exists; no changes made');
+  }
+
   const email = env.seedAdminEmail.trim().toLowerCase();
-  const existingAdmin = await User.findOne({ email, isDeleted: false });
+  const existingAdmin = await User.findOne({ instituteId, email, isDeleted: false });
 
   if (existingAdmin) {
     logger.info({ email }, 'Admin user already exists; no changes made');
@@ -52,7 +74,7 @@ async function seedAdmin() {
   }
 
   await User.create({
-    instituteId: env.seedAdminInstituteId,
+    instituteId,
     name: env.seedAdminName.trim(),
     email,
     passwordHash: env.seedAdminPassword,

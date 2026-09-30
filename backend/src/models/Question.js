@@ -50,6 +50,7 @@ const questionSchema = new mongoose.Schema(
   {
     instituteId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Institute',
       required: true,
       index: true,
     },

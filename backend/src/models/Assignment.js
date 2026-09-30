@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const fileSchema = new mongoose.Schema({ name: String, url: String, storageKey: String, mimeType: String, size: Number }, { _id: false });
 const submissionSchema = new mongoose.Schema({ studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, files: [fileSchema], submittedAt: Date, note: { type: String, default: '' } }, { _id: false });
 const assignmentSchema = new mongoose.Schema({
-  instituteId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  instituteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Institute', required: true, index: true },
   batchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch', required: true, index: true },
   subjectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
   title: { type: String, required: true, trim: true, maxlength: 180 },

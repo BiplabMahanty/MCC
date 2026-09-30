@@ -1,7 +1,6 @@
 const Question = require('../models/Question');
 const Subject = require('../models/Subject');
 const AppError = require('../utils/AppError');
-const env = require('../config/env');
 const { paginationMeta, paginationWindow } = require('../utils/pagination');
 const uploadsService = require('./uploads.service');
 
@@ -36,7 +35,7 @@ async function validateImages(instituteId, question) {
     return;
   }
 
-  if (!env.objectStoragePublicBaseUrl) {
+  if (!uploadsService.storageConfigured()) {
     throw new AppError(
       'Object storage is not configured.',
       503,
@@ -45,15 +44,8 @@ async function validateImages(instituteId, question) {
   }
 
   const prefix = `institutes/${instituteId}/questions/`;
-  const publicBaseUrl = `${env.objectStoragePublicBaseUrl.replace(/\/$/, '')}/`;
 
-  if (
-    images.some(
-      (image) =>
-        !image.storageKey.startsWith(prefix) ||
-        image.url !== `${publicBaseUrl}${image.storageKey}`,
-    )
-  ) {
+  if (images.some((image) => !image.storageKey.startsWith(prefix))) {
     throw new AppError(
       'Question images must belong to the authenticated institute.',
       400,

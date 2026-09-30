@@ -146,6 +146,8 @@ export default function ExamDetailScreen({ navigation, route }) {
                   batchId: exam.batchId?._id,
                   subjectId: exam.subjectId?._id,
                   durationMinutes: exam.durationMinutes,
+                  startTime: exam.startTime,
+                  endTime: exam.endTime,
                   totalMarks: exam.totalMarks,
                   marksPerQuestion: exam.marksPerQuestion,
                   negativeMarks: exam.negativeMarks,

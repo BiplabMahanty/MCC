@@ -50,19 +50,16 @@ node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
 
 `SEED_ADMIN_INSTITUTE_ID` must be a 24-character MongoDB ObjectId. The provided development ID is valid, but it should be replaced when a real Institute model is introduced.
 
-Question images use Cloudflare R2 through its S3-compatible API. Set these values before testing image blocks:
+Question images are stored on Cloudinary. Set these values before testing image blocks:
 
 ```dotenv
-OBJECT_STORAGE_ENDPOINT=https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com
-OBJECT_STORAGE_REGION=auto
-OBJECT_STORAGE_BUCKET=coaching-management
-OBJECT_STORAGE_ACCESS_KEY_ID=your-r2-access-key
-OBJECT_STORAGE_SECRET_ACCESS_KEY=your-r2-secret-key
-OBJECT_STORAGE_PUBLIC_BASE_URL=https://media.example.com
-OBJECT_STORAGE_SIGNED_URL_TTL_SECONDS=300
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+CLOUDINARY_SIGNED_URL_TTL_SECONDS=300
 ```
 
-Use a bucket-scoped token that can read object metadata and write objects, and expose public reads through a dedicated media domain without application cookies. Configure the bucket to permit `PUT` requests with `Content-Type` and `x-amz-meta-size` headers from the required clients. If storage is not configured, the rest of the API still starts, but image-signing requests return HTTP 503.
+If storage is not configured, the rest of the API still starts, but image-signing requests return HTTP 503.
 
 ## 2. Install dependencies
 
@@ -320,7 +317,7 @@ Admin endpoints:
 - `GET /api/admin/questions/:id` - retrieve a question for editing or preview.
 - `PATCH /api/admin/questions/:id` - update a question.
 - `DELETE /api/admin/questions/:id` - soft-delete a question.
-- `POST /api/admin/uploads/question-image` - create a short-lived signed PUT URL.
+- `POST /api/admin/uploads/question-image` - create a short-lived Cloudinary signed upload.
 
 Teacher endpoints are read-only and restricted to active questions belonging to assigned active Subjects:
 
@@ -332,10 +329,10 @@ Question lists accept `page`, `limit`, `search`, `subjectId`, `topic`, `difficul
 Image upload flow:
 
 1. Send the filename, MIME type, and byte size to `/api/admin/uploads/question-image`.
-2. PUT the binary to the returned `uploadUrl` with every returned header.
+2. POST the binary to the returned `uploadUrl` as multipart form data, appending every key from `fields` plus the file binary as `file`.
 3. Store the returned `url`, `storageKey`, MIME type, dimensions, and accessible alternative text in an image block.
 
-Uploads accept PNG, JPG, WEBP, and SVG up to 5 MB. Before saving a Question, the backend reads the uploaded object's metadata and verifies its actual size, declared size, and MIME type. Presigned URLs expire after the configured TTL and are restricted to the authenticated institute's question-image path.
+Uploads accept PNG, JPG, WEBP, and SVG up to 5 MB. Before saving a Question, the backend fetches the uploaded object's metadata from Cloudinary and verifies its actual size. Signed upload params expire after the configured TTL and are restricted to the authenticated institute's question-image path.
 
 ## Phase 0 testing checklist
 
@@ -390,7 +387,7 @@ Uploads accept PNG, JPG, WEBP, and SVG up to 5 MB. Before saving a Question, the
 
 ## Phase 4 testing checklist
 
-1. Configure a Cloudflare R2 bucket, credentials, public media domain, and upload headers in `backend/.env`.
+1. Configure Cloudinary credentials (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) in `backend/.env`.
 2. Rebuild the Expo development client because Phase 4 adds Image Picker and WebView native modules.
 3. As Admin, open Question Bank and create a question containing text and at least two options.
 4. Add valid LaTeX such as `\frac{-b \pm \sqrt{b^2-4ac}}{2a}` and confirm the live and saved previews render formatted mathematics rather than raw LaTeX.

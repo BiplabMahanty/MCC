@@ -1,15 +1,50 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import colors from '../../../theme/colors';
 
+function Avatar({ name, profileImage }) {
+  const initials = name
+    ?.split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  if (profileImage?.url) {
+    return (
+      <Image
+        accessibilityLabel={name}
+        source={{ uri: profileImage.url }}
+        style={styles.avatar}
+      />
+    );
+  }
+
+  return (
+    <View style={[styles.avatar, styles.avatarFallback]}>
+      <Text style={styles.avatarText}>{initials || '?'}</Text>
+    </View>
+  );
+}
+
 export default function EntityListItem({ item, subtitle, onEdit, onDelete }) {
+  const showAvatar = Boolean(item.profileImage || item.studentCode || item.employeeCode);
+
   return (
     <View style={styles.card}>
       <View style={styles.content}>
         <View style={styles.titleRow}>
-          <Text numberOfLines={1} style={styles.title}>
-            {item.name}
-          </Text>
+          {showAvatar ? (
+            <Avatar name={item.name} profileImage={item.profileImage} />
+          ) : null}
+          <View style={styles.titleBlock}>
+            <Text numberOfLines={1} style={styles.title}>
+              {item.name}
+            </Text>
+            <Text numberOfLines={2} style={styles.subtitle}>
+              {subtitle}
+            </Text>
+          </View>
           <View style={[styles.badge, !item.isActive && styles.badgeInactive]}>
             <Text
               style={[
@@ -21,9 +56,6 @@ export default function EntityListItem({ item, subtitle, onEdit, onDelete }) {
             </Text>
           </View>
         </View>
-        <Text numberOfLines={2} style={styles.subtitle}>
-          {subtitle}
-        </Text>
       </View>
       <View style={styles.actions}>
         <Pressable
@@ -62,12 +94,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 10,
-    justifyContent: 'space-between',
+  },
+  avatar: {
+    borderRadius: 20,
+    height: 40,
+    width: 40,
+  },
+  avatarFallback: {
+    alignItems: 'center',
+    backgroundColor: colors.lightNeutral,
+    justifyContent: 'center',
+  },
+  avatarText: {
+    color: colors.mutedText,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  titleBlock: {
+    flex: 1,
+    gap: 3,
   },
   title: {
     color: colors.black,
-    flex: 1,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
   },
   subtitle: {

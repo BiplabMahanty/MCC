@@ -29,6 +29,14 @@ export default function ExamDraftProvider({ children }) {
 
   // Seeds the draft from an existing exam (edit mode).
   const initDraft = useCallback((prefill) => {
+    function splitIso(iso) {
+      if (!iso) return { date: '', time: '' };
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return { date: '', time: '' };
+      return { date: d.toISOString().slice(0, 10), time: d.toISOString().slice(11, 16) };
+    }
+    const start = splitIso(prefill.startTime);
+    const end = splitIso(prefill.endTime);
     setDraft({
       name: prefill.name ?? '',
       examType: prefill.examType ?? '',
@@ -36,10 +44,10 @@ export default function ExamDraftProvider({ children }) {
       batchId: prefill.batchId ?? '',
       subjectId: prefill.subjectId ?? '',
       durationMinutes: prefill.durationMinutes ? String(prefill.durationMinutes) : '',
-      startDate: '',
-      startTime: '',
-      endDate: '',
-      endTime: '',
+      startDate: start.date,
+      startTime: start.time,
+      endDate: end.date,
+      endTime: end.time,
       totalMarks: prefill.totalMarks ? String(prefill.totalMarks) : '',
       marksPerQuestion: prefill.marksPerQuestion ? String(prefill.marksPerQuestion) : '',
       negativeMarks: prefill.negativeMarks ? String(prefill.negativeMarks) : '0',

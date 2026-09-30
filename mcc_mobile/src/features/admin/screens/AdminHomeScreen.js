@@ -1,510 +1,499 @@
-import { useEffect, useRef, useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import {
-  Alert,
-  Dimensions,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Pressable, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
 import useAuth from '../../../hooks/useAuth';
-import AuthBackground from '../../auth/components/AuthBackground';
-import DashboardCard from '../components/DashboardCard';
 import useAdminDashboard from '../hooks/useAdminDashboard';
+import colors from '../../../theme/colors';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SW } = Dimensions.get('window');
 
-const palette = {
-  mint: '#5BE99E',
-  text: '#F9FBFA',
-  secondary: '#C3D3D0',
-  link: '#4CEFA4',
-  errorBg: 'rgba(169, 18, 36, 0.22)',
-  errorBorder: 'rgba(255, 185, 192, 0.35)',
-  errorText: '#FFD4D8',
-  sectionDivider: 'rgba(255,255,255,0.08)',
-  actionBg: 'rgba(91, 233, 158, 0.13)',
-  actionBorder: 'rgba(91, 233, 158, 0.28)',
-};
-
-const SLIDES = [
-  {
-    title: 'Welcome back!',
-    body: 'Ready to manage your institute today.',
-    accent: '#5BE99E',
-  },
-  {
-    title: 'Everything in one place.',
-    body: 'Students · Teachers · Courses · Batches',
-    accent: '#3DD68C',
-  },
-  {
-    title: 'Learn · Grow · Succeed',
-    body: 'Mahapatra Coaching Center',
-    accent: '#2BC97A',
-  },
-];
-
-const CARD_SECTIONS = [
-  { key: 'students', label: 'Students' },
-  { key: 'teachers', label: 'Teachers' },
-  { key: 'courses', label: 'Courses' },
-  { key: 'batches', label: 'Batches' },
-  { key: 'subjects', label: 'Subjects' },
-  { key: 'questions', label: 'Questions', route: 'AdminQuestionBank' },
-];
-
-function GraduationCap() {
-  return (
-    <View
-      accessibilityElementsHidden
-      importantForAccessibility="no"
-      style={styles.cap}
-    >
-      <View style={styles.capTop} />
-      <View style={styles.capBand} />
-      <View style={styles.tasselStem} />
-      <View style={styles.tassel} />
-    </View>
-  );
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good Morning';
+  if (h < 17) return 'Good Afternoon';
+  return 'Good Evening';
 }
 
-function SliderDots({ count, active }) {
-  return (
-    <View style={styles.dotsRow}>
-      {Array.from({ length: count }).map((_, i) => (
-        <View
-          key={i}
-          style={[styles.dot, i === active && styles.dotActive]}
-        />
-      ))}
-    </View>
-  );
-}
+const STAT_CARDS = [
+  { key: 'students', label: 'Total Students', iconBg: colors.iconBgGreen, iconColor: colors.iconGreen, icon: '👥', trend: '+12%' },
+  { key: 'teachers', label: 'Total Teachers', iconBg: colors.iconBgBlue, iconColor: colors.iconBlue, icon: '👨‍🏫', trend: '+9%' },
+  { key: 'courses', label: 'Total Courses', iconBg: colors.iconBgPurple, iconColor: colors.iconPurple, icon: '📚', trend: '+14%' },
+  { key: 'batches', label: 'Total Batches', iconBg: colors.iconBgOrange, iconColor: colors.iconOrange, icon: '📅', trend: '+20%' },
+];
 
-function ActionButton({ label, onPress }) {
+const FEE_ITEMS = [
+  { label: 'Total Collected', value: '₹2,48,500', trend: '+15%', up: true, iconBg: colors.iconBgGreen, icon: '💰' },
+  { label: 'Pending Amount', value: '₹48,200', trend: '-8%', up: false, iconBg: colors.iconBgOrange, icon: '⏳' },
+  { label: 'Total Fees', value: '₹2,96,700', trend: '+12%', up: true, iconBg: colors.iconBgPurple, icon: '📄' },
+  { label: 'Pending Students', value: '18', trend: '-5%', up: false, iconBg: colors.iconBgPink, icon: '👤' },
+];
+
+const TODAY_CLASSES = [
+  { subject: 'Mathematics', time: '09:00 AM – 10:00 AM', course: 'Class 10', batch: 'Batch A', status: 'Ongoing', iconBg: colors.iconBgBlue, icon: '🔢' },
+  { subject: 'Physics', time: '11:15 AM – 12:15 PM', course: 'Class 10', batch: 'Batch B', status: 'Upcoming', iconBg: colors.iconBgPurple, icon: '⚛️' },
+  { subject: 'Chemistry', time: '02:00 PM – 03:00 PM', course: 'Class 12', batch: 'Batch C', status: 'Upcoming', iconBg: colors.iconBgOrange, icon: '🧪' },
+];
+
+function StatCard({ item, count, onPress }) {
   return (
     <Pressable
-      accessibilityRole="button"
+      style={({ pressed }) => [styles.statCard, pressed && styles.pressed]}
       onPress={onPress}
-      style={({ pressed }) => [styles.actionBtn, pressed && styles.actionBtnPressed]}
     >
-      <Text style={styles.actionBtnText}>{label}</Text>
+      <View style={[styles.statIconCircle, { backgroundColor: item.iconBg }]}>
+        <Text style={styles.statIcon}>{item.icon}</Text>
+      </View>
+      <Text style={styles.statLabel}>{item.label}</Text>
+      <Text style={styles.statCount}>{count ?? '—'}</Text>
+      <View style={styles.statTrendRow}>
+        <Text style={styles.statTrendUp}>↑ {item.trend}</Text>
+        <Text style={styles.statVs}> vs last month</Text>
+      </View>
     </Pressable>
   );
 }
 
-export default function AdminHomeScreen({ navigation }) {
-  const { logout, user } = useAuth();
-  const { data, error, isFetching, isPending, refetch } = useAdminDashboard();
-  const stats = data?.data;
-
-  const [slideIndex, setSlideIndex] = useState(0);
-  const sliderRef = useRef(null);
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setSlideIndex((prev) => {
-        const next = (prev + 1) % SLIDES.length;
-        sliderRef.current?.scrollTo({ x: next * SCREEN_WIDTH, animated: true });
-        return next;
-      });
-    }, 3000);
-    return () => clearInterval(timerRef.current);
-  }, []);
-
-  function handleSliderScroll(e) {
-    const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-    if (index !== slideIndex) {
-      setSlideIndex(index);
-      clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => {
-        setSlideIndex((prev) => {
-          const next = (prev + 1) % SLIDES.length;
-          sliderRef.current?.scrollTo({ x: next * SCREEN_WIDTH, animated: true });
-          return next;
-        });
-      }, 3000);
-    }
-  }
-
-  function confirmLogout() {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: logout },
-      ],
-    );
-  }
-
+function FeeCard({ item }) {
   return (
-    <AuthBackground>
-      <StatusBar style="light" translucent backgroundColor="transparent" />
-      <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.safeArea}>
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* ── HEADER ── */}
-          <View style={styles.header}>
-            <Pressable
-              accessibilityLabel="Sign out"
-              accessibilityRole="button"
-              onPress={confirmLogout}
-              style={({ pressed }) => [styles.logoBtn, pressed && styles.logoBtnPressed]}
-            >
-              <GraduationCap />
-            </Pressable>
-            <View style={styles.headerCenter}>
-              <Text style={styles.headerName}>{user?.name}</Text>
-              <Text style={styles.headerRole}>Admin · Mahapatra Coaching</Text>
-            </View>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>
-                {user?.name?.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          </View>
-
-          {/* ── SLIDER ── */}
-          <View style={styles.sliderWrapper}>
-            <ScrollView
-              ref={sliderRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={handleSliderScroll}
-              scrollEventThrottle={16}
-            >
-              {SLIDES.map((slide, i) => (
-                <View key={i} style={styles.slide}>
-                  <View style={[styles.slideAccent, { backgroundColor: slide.accent }]} />
-                  <Text style={styles.slideTitle}>{slide.title}</Text>
-                  <Text style={styles.slideBody}>{slide.body}</Text>
-                </View>
-              ))}
-            </ScrollView>
-            <SliderDots count={SLIDES.length} active={slideIndex} />
-          </View>
-
-          {/* ── OVERVIEW ── */}
-          <View style={styles.sectionRow}>
-            <Text style={styles.sectionTitle}>Overview</Text>
-            <Text style={styles.sectionMeta}>
-              {isPending ? 'Loading…' : isFetching ? 'Refreshing…' : 'Live totals'}
-            </Text>
-          </View>
-
-          {error ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{error.message}</Text>
-              <Pressable onPress={refetch} style={styles.retryBtn}>
-                <Text style={styles.retryText}>Try again</Text>
-              </Pressable>
-            </View>
-          ) : null}
-
-          <View style={styles.grid}>
-            {CARD_SECTIONS.map((section) => (
-              <DashboardCard
-                key={section.key}
-                count={stats?.[section.key]}
-                label={section.label}
-                onPress={() =>
-                  section.route
-                    ? navigation.navigate(section.route)
-                    : navigation.navigate('AdminEntityList', { entityType: section.key })
-                }
-              />
-            ))}
-          </View>
-
-          {/* ── QUICK ACTIONS ── */}
-          <View style={styles.divider} />
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionsGrid}>
-            <ActionButton
-              label="Analytics"
-              onPress={() => navigation.navigate('AdminAnalytics')}
-            />
-            <ActionButton
-              label="Question Bank"
-              onPress={() => navigation.navigate('AdminQuestionBank')}
-            />
-            <ActionButton
-              label="Exams"
-              onPress={() => navigation.navigate('AdminExamList', { role: 'admin' })}
-            />
-            <ActionButton
-              label="Refresh"
-              onPress={refetch}
-            />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </AuthBackground>
+    <View style={styles.feeCard}>
+      <View style={[styles.feeIconCircle, { backgroundColor: item.iconBg }]}>
+        <Text style={styles.feeIcon}>{item.icon}</Text>
+      </View>
+      <Text style={styles.feeLabel}>{item.label}</Text>
+      <Text style={[styles.feeValue, !item.up && styles.feeValueOrange]}>{item.value}</Text>
+      <View style={styles.feeTrendRow}>
+        <Text style={[styles.feeTrend, item.up ? styles.trendUp : styles.trendDown]}>
+          {item.up ? '↑' : '↓'} {item.trend}
+        </Text>
+        <Text style={styles.feeVs}> vs last month</Text>
+      </View>
+    </View>
   );
 }
 
+function ClassRow({ item }) {
+  const isOngoing = item.status === 'Ongoing';
+  return (
+    <View style={styles.classRow}>
+      <View style={[styles.classIconCircle, { backgroundColor: item.iconBg }]}>
+        <Text style={styles.classIcon}>{item.icon}</Text>
+      </View>
+      <View style={styles.classInfo}>
+        <Text style={styles.classSubject}>{item.subject}</Text>
+        <Text style={styles.classTime}>{item.time}</Text>
+        <Text style={styles.classMeta}>{item.course} • {item.batch}</Text>
+      </View>
+      <View style={[styles.statusBadge, isOngoing ? styles.badgeOngoing : styles.badgeUpcoming]}>
+        <Text style={[styles.statusText, isOngoing ? styles.statusOngoing : styles.statusUpcoming]}>
+          {item.status}
+        </Text>
+      </View>
+      <Text style={styles.classChevron}>›</Text>
+    </View>
+  );
+}
+
+export default function AdminHomeScreen({ navigation }) {
+  const { user } = useAuth();
+  const { data, isFetching, error, refetch } = useAdminDashboard();
+  const stats = data?.data;
+
+  return (
+    <View style={styles.root}>
+      <StatusBar style="light" translucent backgroundColor="transparent" />
+
+      {/* ── HEADER ── */}
+      <View style={styles.header}>
+        <SafeAreaView edges={['top']} style={styles.headerSafe}>
+          <View style={styles.headerTop}>
+            <Text style={styles.menuIcon}>☰</Text>
+            <View style={styles.headerBrand}>
+              <View style={styles.brandIconCircle}>
+                <Text style={styles.brandIcon}>🎓</Text>
+              </View>
+              <View>
+                <Text style={styles.brandName} numberOfLines={1}>{user?.instituteName ?? 'Coaching'}</Text>
+                <Text style={styles.brandSub}>Management System</Text>
+              </View>
+            </View>
+            <View style={styles.headerRight}>
+              <View style={styles.bellWrap}>
+                <Text style={styles.bellIcon}>🔔</Text>
+                <View style={styles.bellBadge}><Text style={styles.bellBadgeText}>3</Text></View>
+              </View>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
+              </View>
+              <Text style={styles.adminLabel}>{user?.name?.split(' ')[0] ?? 'Admin'} ▾</Text>
+            </View>
+          </View>
+
+          <View style={styles.greetingRow}>
+            <Text style={styles.greeting}>{getGreeting()}, {user?.name?.split(' ')[0] ?? 'Admin'} 👋</Text>
+          </View>
+          <Text style={styles.greetingSub}>Here's a quick overview of your institute today.</Text>
+        </SafeAreaView>
+        {/* decorative wave */}
+        <View style={styles.waveBump} />
+      </View>
+
+      {/* ── SCROLL BODY ── */}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Stat Cards 2×2 */}
+        <View style={styles.statGrid}>
+          {STAT_CARDS.map((item) => (
+            <StatCard
+              key={item.key}
+              item={item}
+              count={stats?.[item.key]}
+              onPress={() => navigation.navigate('AdminEntityList', { entityType: item.key })}
+            />
+          ))}
+        </View>
+
+        {/* Fee Collection + Upcoming Exam */}
+        <View style={styles.midRow}>
+          {/* Fee Collection */}
+          <View style={styles.feeSection}>
+            <View style={styles.feeSectionHeader}>
+              <Text style={styles.feeSectionIcon}>💳</Text>
+              <Text style={styles.feeSectionTitle}>Fee Collection</Text>
+              <View style={styles.monthPill}>
+                <Text style={styles.monthText}>📅 August 2025 ▾</Text>
+              </View>
+            </View>
+            <View style={styles.feeGrid}>
+              {FEE_ITEMS.map((item) => (
+                <FeeCard key={item.label} item={item} />
+              ))}
+            </View>
+          </View>
+
+          {/* Upcoming Exam */}
+          <View style={styles.examSection}>
+            <View style={styles.examSectionHeader}>
+              <Text style={styles.examSectionIcon}>📅</Text>
+              <Text style={styles.examSectionTitle}>Upcoming Exam</Text>
+              <Pressable onPress={() => navigation.navigate('AdminExamList', { role: 'admin' })}>
+                <Text style={styles.viewAll}>View All →</Text>
+              </Pressable>
+            </View>
+            <View style={styles.examCard}>
+              <View style={styles.examCardIconCircle}>
+                <Text style={styles.examCardIcon}>📋</Text>
+              </View>
+              <View style={styles.examCardInfo}>
+                <Text style={styles.examCardSubject}>Mathematics</Text>
+                <Text style={styles.examCardMeta}>Class 10  •  Batch A</Text>
+                <Text style={styles.examCardDate}>📅  26 Aug 2025  •  10:00 AM</Text>
+              </View>
+            </View>
+            <Pressable
+              style={({ pressed }) => [styles.viewExamBtn, pressed && styles.pressed]}
+              onPress={() => navigation.navigate('AdminExamList', { role: 'admin' })}
+            >
+              <Text style={styles.viewExamText}>View Exam  →</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Today's Classes */}
+        <View style={styles.classesSection}>
+          <View style={styles.classesSectionHeader}>
+            <Text style={styles.classesSectionIcon}>📅</Text>
+            <Text style={styles.classesSectionTitle}>Today's Classes</Text>
+            <Pressable>
+              <Text style={styles.viewAll}>View All →</Text>
+            </Pressable>
+          </View>
+          {TODAY_CLASSES.map((item) => (
+            <ClassRow key={item.subject} item={item} />
+          ))}
+        </View>
+
+        {error ? (
+          <Pressable onPress={refetch} style={styles.retryBtn}>
+            <Text style={styles.retryText}>{isFetching ? 'Refreshing…' : 'Tap to retry'}</Text>
+          </Pressable>
+        ) : null}
+      </ScrollView>
+    </View>
+  );
+}
+
+const HEADER_H = 200;
+
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
-  content: {
-    gap: 20,
-    paddingBottom: 36,
-    paddingHorizontal: 20,
-    paddingTop: 14,
-  },
+  root: { flex: 1, backgroundColor: colors.dashBg },
 
   // Header
   header: {
-    alignItems: 'center',
+    backgroundColor: colors.dashGreen,
+    paddingBottom: 24,
+  },
+  headerSafe: { paddingHorizontal: 18 },
+  headerTop: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  logoBtn: {
-    padding: 4,
-  },
-  logoBtnPressed: {
-    opacity: 0.6,
-  },
-  cap: {
-    height: 46,
-    position: 'relative',
-    width: 56,
-  },
-  capTop: {
-    backgroundColor: palette.mint,
-    borderRadius: 3,
-    height: 30,
-    left: 13,
-    position: 'absolute',
-    top: 0,
-    transform: [{ rotate: '45deg' }, { scaleY: 0.54 }],
-    width: 30,
-  },
-  capBand: {
-    backgroundColor: palette.mint,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    height: 12,
-    left: 14,
-    position: 'absolute',
-    top: 24,
-    width: 28,
-  },
-  tasselStem: {
-    backgroundColor: palette.mint,
-    borderRadius: 2,
-    height: 18,
-    position: 'absolute',
-    right: 7,
-    top: 15,
-    transform: [{ rotate: '-8deg' }],
-    width: 2.5,
-  },
-  tassel: {
-    backgroundColor: palette.mint,
-    borderRadius: 4,
-    height: 6,
-    position: 'absolute',
-    right: 5,
-    top: 31,
-    width: 5,
-  },
-  headerCenter: { flex: 1 },
-  headerName: {
-    color: palette.text,
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  headerRole: {
-    color: palette.secondary,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  avatarCircle: {
     alignItems: 'center',
-    backgroundColor: 'rgba(91,233,158,0.18)',
-    borderColor: 'rgba(91,233,158,0.35)',
-    borderRadius: 22,
-    borderWidth: 1,
-    height: 44,
-    justifyContent: 'center',
+    marginTop: 8,
+    gap: 10,
+  },
+  menuIcon: { fontSize: 20, color: '#fff', marginRight: 2 },
+  headerBrand: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  brandIconCircle: {
     width: 44,
-  },
-  avatarText: {
-    color: palette.mint,
-    fontSize: 18,
-    fontWeight: '900',
-  },
-
-  // Slider
-  sliderWrapper: {
-    borderColor: 'rgba(91, 233, 158, 0.22)',
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  slide: {
-    experimental_backgroundImage: [
-      {
-        type: 'linear-gradient',
-        direction: '145deg',
-        colorStops: [
-          { color: 'rgba(255, 255, 255, 0.97)', positions: ['0%'] },
-          { color: 'rgba(232, 248, 241, 0.95)', positions: ['55%'] },
-          { color: 'rgba(210, 242, 228, 0.92)', positions: ['100%'] },
-        ],
-      },
-    ],
-    backgroundColor: 'rgba(232, 248, 241, 0.95)',
-    paddingBottom: 18,
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    width: SCREEN_WIDTH - 40,
-  },
-  slideAccent: {
-    borderRadius: 2,
-    height: 3,
-    marginBottom: 10,
-    opacity: 0.9,
-    width: 24,
-  },
-  slideTitle: {
-    color: '#0D2B20',
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.4,
-  },
-  slideBody: {
-    color: '#3A6B55',
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 4,
-  },
-  dotsRow: {
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
-    backgroundColor: 'rgba(232, 248, 241, 0.88)',
-    flexDirection: 'row',
-    gap: 6,
     justifyContent: 'center',
-    paddingVertical: 9,
   },
-  dot: {
-    backgroundColor: 'rgba(10, 122, 69, 0.25)',
-    borderRadius: 4,
-    height: 6,
-    width: 6,
-  },
-  dotActive: {
-    backgroundColor: '#0A7A45',
-    width: 18,
-  },
-
-  // Section
-  sectionRow: {
+  brandIcon: { fontSize: 22 },
+  brandName: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  brandSub: { color: 'rgba(255,255,255,0.75)', fontSize: 11 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  bellWrap: { position: 'relative' },
+  bellIcon: { fontSize: 22 },
+  bellBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
     alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
   },
-  sectionTitle: {
-    color: palette.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
+  bellBadgeText: { color: '#fff', fontSize: 9, fontWeight: '900' },
+  avatarCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.dashGreenAccent,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sectionMeta: {
-    color: palette.secondary,
-    fontSize: 12,
-  },
-
-  // Error
-  errorBox: {
-    backgroundColor: palette.errorBg,
-    borderColor: palette.errorBorder,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 10,
-    padding: 14,
-  },
-  errorText: {
-    color: palette.errorText,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  retryBtn: { alignSelf: 'flex-start' },
-  retryText: {
-    color: palette.link,
-    fontSize: 13,
-    fontWeight: '700',
+  avatarText: { color: '#fff', fontSize: 14, fontWeight: '900' },
+  adminLabel: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  greetingRow: { marginTop: 18 },
+  greeting: { color: '#fff', fontSize: 22, fontWeight: '900', letterSpacing: -0.3 },
+  greetingSub: { color: 'rgba(255,255,255,0.78)', fontSize: 13, marginTop: 4, lineHeight: 18 },
+  waveBump: {
+    position: 'absolute',
+    bottom: -20,
+    right: -30,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
 
-  // Grid
-  grid: {
+  // Scroll
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, gap: 16, paddingBottom: 32 },
+
+  // Stat grid
+  statGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 10,
+  },
+  statCard: {
+    backgroundColor: colors.dashCard,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.dashBorder,
+    padding: 12,
+    width: (SW - 42) / 2,
+    gap: 4,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+  pressed: { opacity: 0.7 },
+  statIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  statIcon: { fontSize: 20 },
+  statLabel: { fontSize: 12, color: colors.dashSubText, fontWeight: '500' },
+  statCount: { fontSize: 26, fontWeight: '900', color: colors.dashText, letterSpacing: -0.5 },
+  statTrendRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
+  statTrendUp: { fontSize: 12, fontWeight: '700', color: colors.dashUp },
+  statVs: { fontSize: 11, color: colors.dashSubText },
+
+  // Mid row
+  midRow: { flexDirection: 'row', gap: 10 },
+
+  // Fee section
+  feeSection: {
+    flex: 1.1,
+    backgroundColor: colors.dashCard,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.dashBorder,
+    padding: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+  feeSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
+  feeSectionIcon: { fontSize: 16 },
+  feeSectionTitle: { fontSize: 13, fontWeight: '800', color: colors.dashText, flex: 1 },
+  monthPill: {
+    backgroundColor: colors.dashBg,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.dashBorder,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+  },
+  monthText: { fontSize: 9, color: colors.dashSubText, fontWeight: '600' },
+  feeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  feeCard: {
+    width: '47%',
+    backgroundColor: colors.dashBg,
+    borderRadius: 10,
+    padding: 8,
+    gap: 2,
+  },
+  feeIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  feeIcon: { fontSize: 14 },
+  feeLabel: { fontSize: 10, color: colors.dashSubText },
+  feeValue: { fontSize: 13, fontWeight: '900', color: colors.dashText },
+  feeValueOrange: { color: colors.dashDown },
+  feeTrendRow: { flexDirection: 'row', alignItems: 'center' },
+  feeTrend: { fontSize: 10, fontWeight: '700' },
+  trendUp: { color: colors.dashUp },
+  trendDown: { color: colors.dashDown },
+  feeVs: { fontSize: 9, color: colors.dashSubText },
+
+  // Exam section
+  examSection: {
+    flex: 1,
+    backgroundColor: colors.dashCard,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.dashBorder,
+    padding: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    gap: 10,
+  },
+  examSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  examSectionIcon: { fontSize: 14 },
+  examSectionTitle: { fontSize: 12, fontWeight: '800', color: colors.dashText, flex: 1 },
+  viewAll: { fontSize: 11, fontWeight: '700', color: colors.dashGreenAccent },
+  examCard: {
+    backgroundColor: colors.dashGreenLight,
+    borderRadius: 10,
+    padding: 10,
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'flex-start',
+  },
+  examCardIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.dashCard,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  examCardIcon: { fontSize: 16 },
+  examCardInfo: { flex: 1, gap: 2 },
+  examCardSubject: { fontSize: 13, fontWeight: '800', color: colors.dashText },
+  examCardMeta: { fontSize: 11, color: colors.dashSubText },
+  examCardDate: { fontSize: 10, color: colors.dashSubText, marginTop: 4 },
+  viewExamBtn: {
+    backgroundColor: colors.dashGreen,
+    borderRadius: 20,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  viewExamText: { color: '#fff', fontSize: 12, fontWeight: '800' },
+
+  // Today's Classes
+  classesSection: {
+    backgroundColor: colors.dashCard,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.dashBorder,
+    padding: 14,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
     gap: 12,
   },
-
-  // Divider
-  divider: {
-    backgroundColor: palette.sectionDivider,
-    height: 1,
-  },
-
-  // Quick Actions
-  actionsGrid: {
+  classesSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  classesSectionIcon: { fontSize: 16 },
+  classesSectionTitle: { fontSize: 15, fontWeight: '800', color: colors.dashText, flex: 1 },
+  classRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 10,
+    paddingVertical: 4,
+    borderTopWidth: 1,
+    borderTopColor: colors.dashBorder,
   },
-  actionBtn: {
-    experimental_backgroundImage: [
-      {
-        type: 'linear-gradient',
-        direction: '145deg',
-        colorStops: [
-          { color: 'rgba(255, 255, 255, 0.97)', positions: ['0%'] },
-          { color: 'rgba(232, 248, 241, 0.95)', positions: ['55%'] },
-          { color: 'rgba(210, 242, 228, 0.92)', positions: ['100%'] },
-        ],
-      },
-    ],
-    backgroundColor: 'rgba(232, 248, 241, 0.95)',
-    borderColor: 'rgba(91, 233, 158, 0.25)',
-    borderRadius: 13,
-    borderWidth: 1,
-    flexBasis: '44%',
-    flexGrow: 1,
+  classIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 46,
-    paddingHorizontal: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 3,
   },
-  actionBtnPressed: {
-    opacity: 0.65,
+  classIcon: { fontSize: 18 },
+  classInfo: { flex: 1, gap: 1 },
+  classSubject: { fontSize: 13, fontWeight: '800', color: colors.dashText },
+  classTime: { fontSize: 11, color: colors.dashSubText },
+  classMeta: { fontSize: 11, color: colors.dashSubText },
+  statusBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  actionBtnText: {
-    color: '#0A7A45',
-    fontSize: 13,
-    fontWeight: '700',
+  badgeOngoing: { backgroundColor: '#DCFCE7' },
+  badgeUpcoming: { backgroundColor: '#F3F4F6' },
+  statusText: { fontSize: 10, fontWeight: '700' },
+  statusOngoing: { color: colors.dashUp },
+  statusUpcoming: { color: colors.dashSubText },
+  classChevron: { fontSize: 20, color: colors.dashSubText },
+
+  // Retry
+  retryBtn: {
+    alignSelf: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: colors.dashGreenLight,
+    borderRadius: 10,
   },
+  retryText: { color: colors.dashGreen, fontWeight: '700', fontSize: 13 },
 });

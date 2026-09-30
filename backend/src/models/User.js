@@ -22,6 +22,15 @@ const refreshTokenSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const profileImageSchema = new mongoose.Schema(
+  {
+    url: { type: String, trim: true, maxlength: 2048 },
+    storageKey: { type: String, trim: true, maxlength: 500 },
+    mimeType: { type: String, trim: true, maxlength: 50 },
+  },
+  { _id: false },
+);
+
 const studentProfileSchema = new mongoose.Schema(
   {
     studentCode: { type: String, trim: true, uppercase: true },
@@ -33,6 +42,7 @@ const studentProfileSchema = new mongoose.Schema(
     dateOfBirth: { type: Date, default: null },
     guardianName: { type: String, trim: true, maxlength: 100, default: '' },
     guardianPhone: { type: String, trim: true, maxlength: 20, default: '' },
+    profileImage: { type: profileImageSchema, default: undefined },
   },
   { _id: false },
 );
@@ -42,6 +52,7 @@ const teacherProfileSchema = new mongoose.Schema(
     employeeCode: { type: String, trim: true, uppercase: true },
     qualification: { type: String, trim: true, maxlength: 150, default: '' },
     experienceYears: { type: Number, min: 0, max: 80, default: 0 },
+    profileImage: { type: profileImageSchema, default: undefined },
   },
   { _id: false },
 );
@@ -50,6 +61,7 @@ const userSchema = new mongoose.Schema(
   {
     instituteId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Institute',
       required: true,
       index: true,
     },

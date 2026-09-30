@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import Screen from '../../../components/common/Screen';
 import colors from '../../../theme/colors';
+import env from '../../../config/env';
 
 export default function SplashScreen() {
   return (
@@ -12,7 +13,7 @@ export default function SplashScreen() {
         <View style={styles.mark}>
           <Text style={styles.markText}>CSM</Text>
         </View>
-        <Text style={styles.title}>Coaching Management</Text>
+        <Text style={styles.title}>{env.instituteName}</Text>
         <Text style={styles.subtitle}>Restoring your secure session…</Text>
         <ActivityIndicator color={colors.primary} size="small" />
       </View>

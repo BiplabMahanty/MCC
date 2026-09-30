@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import useAuth from '../../../hooks/useAuth';
 import AuthBackground from '../components/AuthBackground';
 import AuthPrimaryButton from '../components/AuthPrimaryButton';
+import env from '../../../config/env';
 
 const colors = {
   mint: '#5BE99E',
@@ -230,7 +231,7 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.brand}>
               <GraduationCapIcon />
               <Text style={styles.brandName}>
-                Mahapatra{`\n`}Coaching Center
+                {env.instituteName.replace(' ', '\n')}
               </Text>
               <Text style={styles.tagline}>Learn · Grow · Succeed</Text>
             </View>

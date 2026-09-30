@@ -1,4 +1,5 @@
 const env = require('../config/env');
+const Institute = require('../models/Institute');
 const User = require('../models/User');
 const AppError = require('../utils/AppError');
 const {
@@ -8,8 +9,11 @@ const {
   hashRefreshToken,
 } = require('../utils/tokens');
 
-function publicUser(user) {
-  return user.toJSON();
+async function publicUser(user) {
+  const json = user.toJSON();
+  const institute = await Institute.findById(user.instituteId).lean();
+  json.instituteName = institute?.name ?? null;
+  return json;
 }
 
 async function login({ email, password }) {
@@ -45,7 +49,7 @@ async function login({ email, password }) {
   return {
     accessToken: createAccessToken(user),
     refreshToken,
-    user: publicUser(user),
+    user: await publicUser(user),
   };
 }
 
@@ -87,7 +91,7 @@ async function refreshSession(currentRefreshToken) {
   return {
     accessToken: createAccessToken(user),
     refreshToken: nextRefreshToken,
-    user: publicUser(user),
+    user: await publicUser(user),
   };
 }
 

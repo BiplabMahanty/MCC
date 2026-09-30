@@ -5,5 +5,5 @@ module.exports = createPeopleService({
   role: ROLES.TEACHER,
   profileKey: 'teacherProfile',
   codeField: 'employeeCode',
-  profileFields: ['employeeCode', 'qualification', 'experienceYears'],
+  profileFields: ['employeeCode', 'qualification', 'experienceYears', 'profileImage'],
 });

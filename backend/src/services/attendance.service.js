@@ -54,7 +54,13 @@ async function list(instituteId, query = {}, teacherId) {
     end.setUTCMonth(end.getUTCMonth() + 1);
     filter.date = { $gte: start, $lt: end };
   }
-  return Attendance.find(filter).sort({ date: -1 }).limit(100).lean();
+  const page = Math.max(1, parseInt(query.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(query.limit) || 50));
+  return Attendance.find(filter)
+    .sort({ date: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .lean();
 }
 
 async function studentSummary(studentId, instituteId, query = {}) {

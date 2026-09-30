@@ -37,7 +37,7 @@ function createPeopleService({
   populate,
 }) {
   const searchFields = ['name', 'email', 'phone', `${profileKey}.${codeField}`];
-  const selection = `name email phone role instituteId isActive ${profileKey} createdAt updatedAt`;
+const selection = `name email phone role instituteId isActive ${profileKey} createdAt updatedAt`;
 
   async function list(instituteId, query) {
     const { page, limit, search, isActive } = query;

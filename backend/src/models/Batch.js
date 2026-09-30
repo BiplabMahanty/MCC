@@ -4,6 +4,7 @@ const batchSchema = new mongoose.Schema(
   {
     instituteId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Institute',
       required: true,
       index: true,
     },
@@ -71,6 +72,10 @@ const batchSchema = new mongoose.Schema(
 
 batchSchema.index(
   { instituteId: 1, code: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: false } },
+);
+batchSchema.index(
+  { courseId: 1, name: 1 },
   { unique: true, partialFilterExpression: { isDeleted: false } },
 );
 batchSchema.index({ instituteId: 1, courseId: 1, isDeleted: 1, isActive: 1 });

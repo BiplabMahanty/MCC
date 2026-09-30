@@ -29,6 +29,7 @@ const entityConfigs = {
       },
       { key: 'guardianName', label: 'Guardian name' },
       { key: 'guardianPhone', label: 'Guardian phone' },
+      { key: 'profileImage', label: 'Profile photo', type: 'image' },
       activeField,
     ],
     subtitle(item) {
@@ -57,6 +58,7 @@ const entityConfigs = {
         type: 'number',
         defaultValue: '0',
       },
+      { key: 'profileImage', label: 'Profile photo', type: 'image' },
       activeField,
     ],
     subtitle(item) {

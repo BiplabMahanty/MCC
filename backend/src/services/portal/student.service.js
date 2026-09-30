@@ -72,6 +72,7 @@ async function getSubjects(userId, instituteId) {
   return Subject.find({
     instituteId,
     courseId: batch.courseId._id,
+    teacherIds: { $in: batch.teacherIds || [] },
     isActive: true,
     isDeleted: false,
   })

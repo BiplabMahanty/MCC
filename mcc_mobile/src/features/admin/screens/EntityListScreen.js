@@ -11,6 +11,8 @@ import colors from '../../../theme/colors';
 import AdminHeader from '../components/AdminHeader';
 import EntityListItem from '../components/EntityListItem';
 import FilterBar from '../components/FilterBar';
+import TeacherListItem from '../components/TeacherListItem';
+import TeacherModuleHeader from '../components/TeacherModuleHeader';
 import entityConfigs from '../config/entityConfigs';
 import {
   useAdminEntities,
@@ -33,6 +35,8 @@ export default function EntityListScreen({ navigation, route }) {
     () => query.data?.pages.flatMap((page) => page.data) || [],
     [query.data],
   );
+  const totalCount = query.data?.pages[0]?.pagination?.total;
+  const isTeacherModule = entityType === 'teachers';
 
   function confirmDelete(item) {
     Alert.alert(
@@ -77,17 +81,23 @@ export default function EntityListScreen({ navigation, route }) {
 
   return (
     <Screen>
-      <StatusBar style="dark" />
+      <StatusBar style={isTeacherModule ? 'light' : 'dark'} />
       <View style={styles.container}>
-        <AdminHeader
-          actionLabel={`Add ${config.singular}`}
-          onAction={() =>
-            navigation.navigate('AdminEntityForm', { entityType })
-          }
-          onBack={navigation.goBack}
-          subtitle="Search, filter, create, edit, or soft-delete records."
-          title={config.plural}
-        />
+        {isTeacherModule ? (
+          <TeacherModuleHeader
+            onAdd={() => navigation.navigate('AdminEntityForm', { entityType })}
+            onBack={navigation.goBack}
+            totalCount={totalCount}
+          />
+        ) : (
+          <AdminHeader
+            actionLabel={`Add ${config.singular}`}
+            onAction={() => navigation.navigate('AdminEntityForm', { entityType })}
+            onBack={navigation.goBack}
+            subtitle="Search, filter, create, edit, or soft-delete records."
+            title={config.plural}
+          />
+        )}
         <FilterBar
           isActive={isActive}
           onActiveChange={setIsActive}
@@ -118,19 +128,21 @@ export default function EntityListScreen({ navigation, route }) {
             }
           }}
           onEndReachedThreshold={0.4}
-          renderItem={({ item }) => (
-            <EntityListItem
-              item={item}
-              onDelete={() => confirmDelete(item)}
-              onEdit={() =>
-                navigation.navigate('AdminEntityForm', {
-                  entityType,
-                  id: item._id,
-                })
-              }
-              subtitle={config.subtitle(item)}
-            />
-          )}
+          renderItem={({ item }) => {
+            const itemProps = {
+              item,
+              onDelete: () => confirmDelete(item),
+              onEdit: () => navigation.navigate('AdminEntityForm', { entityType, id: item._id }),
+            };
+            return isTeacherModule ? (
+              <TeacherListItem
+                {...itemProps}
+                onPress={() => navigation.navigate('TeacherDetail', { teacherId: item._id })}
+              />
+            ) : (
+              <EntityListItem {...itemProps} subtitle={config.subtitle(item)} />
+            );
+          }}
         />
       </View>
     </Screen>

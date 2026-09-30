@@ -1,4 +1,4 @@
-  const { randomUUID } = require('node:crypto');
+const { randomUUID } = require('node:crypto');
 const cloudinary = require('cloudinary').v2;
 const env = require('../config/env');
 const AppError = require('../utils/AppError');
@@ -33,7 +33,6 @@ async function createQuestionImageUpload(instituteId, input) {
   const client = getCloudinary();
   const publicId = `institutes/${instituteId}/questions/${randomUUID()}`;
   const timestamp = Math.floor(Date.now() / 1000);
-  const expiresAt = timestamp + env.cloudinarySignedUrlTtlSeconds;
 
   const paramsToSign = {
     folder: `institutes/${instituteId}/questions`,

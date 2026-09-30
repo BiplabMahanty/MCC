@@ -2,6 +2,14 @@ const { z } = require('zod');
 
 const { dateOnly, objectId, paginationFields } = require('./common.validators');
 
+const profileImageSchema = z
+  .object({
+    url: z.string().url().max(2048),
+    storageKey: z.string().min(1).max(500),
+    mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+  })
+  .strict();
+
 const commonPersonFields = {
   name: z.string().trim().min(2).max(100),
   email: z
@@ -28,6 +36,7 @@ const studentCreateSchema = z
     dateOfBirth: dateOnly.nullable().optional(),
     guardianName: z.string().trim().max(100).default(''),
     guardianPhone: z.string().trim().max(20).default(''),
+    profileImage: profileImageSchema.optional(),
   })
   .strict();
 
@@ -49,6 +58,7 @@ const teacherCreateSchema = z
       .transform((value) => value.toUpperCase()),
     qualification: z.string().trim().max(150).default(''),
     experienceYears: z.coerce.number().min(0).max(80).default(0),
+    profileImage: profileImageSchema.optional(),
   })
   .strict();
 
