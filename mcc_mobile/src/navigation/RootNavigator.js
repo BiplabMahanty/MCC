@@ -14,7 +14,9 @@ import EntityFormScreen from '../features/admin/screens/EntityFormScreen';
 import EntityListScreen from '../features/admin/screens/EntityListScreen';
 import PortalCollectionScreen from '../features/portal/screens/PortalCollectionScreen';
 import PortalHomeScreen from '../features/portal/screens/PortalHomeScreen';
+import StudentHomeScreen from '../features/portal/screens/StudentHomeScreen';
 import PortalProfileScreen from '../features/portal/screens/PortalProfileScreen';
+import StudentProfileScreen from '../features/portal/screens/StudentProfileScreen';
 import StudentBatchScreen from '../features/portal/screens/StudentBatchScreen';
 import StudentAttendanceScreen from '../features/portal/screens/StudentAttendanceScreen';
 import QuestionBankScreen from '../features/questions/screens/QuestionBankScreen';
@@ -67,7 +69,7 @@ const ADMIN_PUSH_SCREENS = (
     <Stack.Screen name="AdminQuestionBank" component={QuestionBankScreen} initialParams={{ role: 'admin' }} />
     <Stack.Screen name="QuestionForm" component={QuestionFormScreen} />
     <Stack.Screen name="QuestionPreview" component={QuestionPreviewScreen} />
-    <Stack.Screen name="AdminExamList" component={ExamListScreen} />
+    <Stack.Screen name="AdminExamList" component={ExamListScreen} initialParams={{ role: 'admin' }} />
     <Stack.Screen name="ExamForm" component={ExamFormScreen} />
     <Stack.Screen name="QuestionPicker" component={QuestionPickerScreen} />
     <Stack.Screen name="ExamDetail" component={ExamDetailScreen} />
@@ -222,7 +224,7 @@ export default function RootNavigator() {
         <Stack.Screen name="TeacherStudents" component={PortalCollectionScreen} initialParams={{ role: 'teacher', resource: 'students', title: 'Students' }} />
         <Stack.Screen name="TeacherQuestionBank" component={QuestionBankScreen} initialParams={{ role: 'teacher' }} />
         <Stack.Screen name="QuestionPreview" component={QuestionPreviewScreen} />
-        <Stack.Screen name="TeacherExamList" component={ExamListScreen} />
+        <Stack.Screen name="TeacherExamList" component={ExamListScreen} initialParams={{ role: 'teacher' }} />
         <Stack.Screen name="ExamDetail" component={ExamDetailScreen} />
         <Stack.Screen name="TeacherExamAnalytics" component={TeacherExamAnalyticsScreen} />
       </Stack.Navigator>
@@ -232,13 +234,13 @@ export default function RootNavigator() {
   if (user.role === roles.student) {
     return (
       <Stack.Navigator key={user.role} screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="StudentHome" component={PortalHomeScreen} initialParams={{ role: 'student' }} />
-        <Stack.Screen name="StudentProfile" component={PortalProfileScreen} initialParams={{ role: 'student' }} />
+        <Stack.Screen name="StudentHome" component={StudentHomeScreen} />
+        <Stack.Screen name="StudentProfile" component={StudentProfileScreen} />
         <Stack.Screen name="StudentBatch" component={StudentBatchScreen} />
         <Stack.Screen name="StudentAttendance" component={StudentAttendanceScreen} />
         <Stack.Screen name="StudentSubjects" component={PortalCollectionScreen} initialParams={{ role: 'student', resource: 'subjects', title: 'Subjects' }} />
         <Stack.Screen name="StudentTeachers" component={PortalCollectionScreen} initialParams={{ role: 'student', resource: 'teachers', title: 'Teachers' }} />
-        <Stack.Screen name="StudentExamList" component={ExamListScreen} />
+        <Stack.Screen name="StudentExamList" component={ExamListScreen} initialParams={{ role: 'student' }} />
         <Stack.Screen name="ExamDetail" component={ExamDetailScreen} />
         <Stack.Screen name="StudentExamInstructions" component={ExamInstructionsScreen} />
         <Stack.Screen name="StudentExamEngine" component={ExamEngineScreen} />

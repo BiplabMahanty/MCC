@@ -230,8 +230,7 @@ export default function ExamEngineScreen({ navigation, route }) {
         >
           {question ? (
             <QuestionRenderer
-              content={question.content}
-              options={question.options}
+              question={question}
               selectedOptionIndex={selectedOption}
               onSelectOption={handleSelectOption}
             />

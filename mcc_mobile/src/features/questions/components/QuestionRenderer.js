@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import colors from '../../../theme/colors';
 import FormulaRenderer from './FormulaRenderer';
@@ -8,7 +8,7 @@ import TableBlock from './TableBlock';
 export function ContentRenderer({ blocks }) {
   return (
     <View style={styles.blocks}>
-      {blocks.map((block, index) => {
+      {(Array.isArray(blocks) ? blocks : []).map((block, index) => {
         if (block.type === 'formula') {
           return (
             <FormulaRenderer key={`formula-${index}`} value={block.value} />
@@ -30,25 +30,43 @@ export function ContentRenderer({ blocks }) {
   );
 }
 
-export default function QuestionRenderer({ question, showAnswer = false }) {
+export default function QuestionRenderer({
+  question,
+  showAnswer = false,
+  selectedOptionIndex = null,
+  onSelectOption,
+}) {
+  if (!question) return null;
+
+  const options = Array.isArray(question.options) ? question.options : [];
+
   return (
     <View style={styles.container}>
       <ContentRenderer blocks={question.content} />
       <View style={styles.options}>
-        {question.options.map((option, index) => {
+        {options.map((option, index) => {
           const correct = showAnswer && question.correctOptionIndex === index;
+          const selected = selectedOptionIndex === index;
           return (
-            <View
-              key={option._id || `option-${index}`}
-              style={[styles.option, correct && styles.correct]}
+            <Pressable
+              accessibilityRole="radio"
+              accessibilityState={{ selected }}
+              key={option?._id || `option-${index}`}
+              onPress={() => onSelectOption?.(index)}
+              style={({ pressed }) => [
+                styles.option,
+                selected && styles.selected,
+                correct && styles.correct,
+                pressed && styles.pressed,
+              ]}
             >
-              <Text style={styles.optionLabel}>
+              <Text style={[styles.optionLabel, selected && styles.selectedLabel]}>
                 {String.fromCharCode(65 + index)}
               </Text>
               <View style={styles.optionContent}>
-                <ContentRenderer blocks={option.content} />
+                <ContentRenderer blocks={option?.content} />
               </View>
-            </View>
+            </Pressable>
           );
         })}
       </View>
@@ -74,6 +92,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.successSurface,
     borderColor: colors.success,
   },
+  selected: {
+    backgroundColor: '#FFF7ED',
+    borderColor: colors.primary,
+    borderWidth: 2,
+  },
+  selectedLabel: { color: colors.primary },
+  pressed: { opacity: 0.75 },
   optionLabel: { color: colors.primary, fontSize: 15, fontWeight: '900' },
   optionContent: { flex: 1 },
 });

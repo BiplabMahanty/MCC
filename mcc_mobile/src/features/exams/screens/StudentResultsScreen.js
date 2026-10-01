@@ -1,125 +1,117 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 
 import EmptyState from '../../../components/common/EmptyState';
 import ErrorState from '../../../components/common/ErrorState';
 import Loader from '../../../components/common/Loader';
-import Screen from '../../../components/common/Screen';
 import colors from '../../../theme/colors';
+import StudentPageHeader from '../../portal/components/StudentPageHeader';
 import { useStudentResults } from '../hooks/useExams';
 
+function gradeColor(grade) {
+  if (!grade) return colors.dashSubText;
+  if (['A+', 'A'].includes(grade)) return colors.dashUp;
+  if (['B+', 'B'].includes(grade)) return colors.iconBlue;
+  if (['C', 'D'].includes(grade)) return '#D97706';
+  return '#DC2626';
+}
+
 function ResultCard({ result, onPress }) {
+  const pct = result.percentage ?? 0;
+  const gc = gradeColor(result.grade);
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.card}>
-      <View style={styles.cardLeft}>
-        <Text style={styles.examName} numberOfLines={1}>
-          {result.examId?.name ?? 'Exam'}
-        </Text>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.7 }]}
+      onPress={onPress}
+    >
+      <View style={[styles.gradeCircle, { borderColor: gc }]}>
+        <Text style={[styles.gradeText, { color: gc }]}>{result.grade ?? '—'}</Text>
+      </View>
+      <View style={styles.cardBody}>
+        <Text style={styles.examName} numberOfLines={1}>{result.examId?.name ?? 'Exam'}</Text>
         <Text style={styles.examMeta}>
-          {result.examId?.examType ?? ''} ·{' '}
-          {result.examId?.academicSession ?? ''}
+          {[result.examId?.examType, result.examId?.academicSession].filter(Boolean).join(' · ')}
         </Text>
+        <View style={styles.progressBg}>
+          <View style={[styles.progressFill, { width: `${Math.min(pct, 100)}%`, backgroundColor: gc }]} />
+        </View>
       </View>
       <View style={styles.cardRight}>
-        <Text style={styles.marks}>
-          {result.obtainedMarks}/{result.totalMarks}
-        </Text>
-        <Text style={styles.pct}>{result.percentage}%</Text>
-        <View style={styles.gradePill}>
-          <Text style={styles.gradeText}>{result.grade}</Text>
-        </View>
-        {result.rank && <Text style={styles.rank}>#{result.rank}</Text>}
+        <Text style={styles.marks}>{result.obtainedMarks}/{result.totalMarks}</Text>
+        <Text style={styles.pct}>{pct}%</Text>
+        {result.rank ? <Text style={styles.rank}>#{result.rank}</Text> : null}
       </View>
     </Pressable>
   );
 }
 
 export default function StudentResultsScreen({ navigation }) {
-  const {
-    data,
-    isPending,
-    error,
-    refetch,
-    isFetching,
-    fetchNextPage,
-    hasNextPage,
-  } = useStudentResults({});
-
-  if (isPending)
-    return (
-      <Screen>
-        <Loader message="Loading results…" />
-      </Screen>
-    );
-  if (error)
-    return (
-      <Screen>
-        <ErrorState
-          message={error.message}
-          onRetry={refetch}
-          retrying={isFetching}
-        />
-      </Screen>
-    );
-
-  const results = data.pages.flatMap((p) => p.data);
+  const { data, isPending, error, refetch, isFetching, fetchNextPage, hasNextPage } = useStudentResults({});
 
   return (
-    <Screen>
-      <StatusBar style="dark" />
-      <Text style={styles.title}>My Results</Text>
-      <FlatList
-        data={results}
-        keyExtractor={(r) => r._id}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={<EmptyState message="No published results yet." />}
-        onEndReached={() => hasNextPage && fetchNextPage()}
-        onEndReachedThreshold={0.3}
-        renderItem={({ item }) => (
-          <ResultCard
-            result={item}
-            onPress={() =>
-              navigation.navigate('StudentExamResult', {
-                examId: item.examId?._id ?? item.examId,
-              })
-            }
-          />
-        )}
+    <View style={styles.root}>
+      <StudentPageHeader
+        title="My Results"
+        subtitle="Exam scores and grades"
+        onBack={navigation.goBack}
       />
-    </Screen>
+      <View style={styles.body}>
+        {isPending ? <Loader message="Loading results…" /> : null}
+        {error ? <ErrorState message={error.message} onRetry={refetch} retrying={isFetching} /> : null}
+        {data ? (
+          <FlatList
+            data={data.pages.flatMap((p) => p.data)}
+            keyExtractor={(r) => r._id}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={<EmptyState title="No results yet" message="No published results found." />}
+            onEndReached={() => hasNextPage && fetchNextPage()}
+            onEndReachedThreshold={0.3}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <ResultCard
+                result={item}
+                onPress={() => navigation.navigate('StudentExamResult', { examId: item.examId?._id ?? item.examId })}
+              />
+            )}
+          />
+        ) : null}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    color: colors.black,
-    fontSize: 22,
-    fontWeight: '900',
-    marginBottom: 16,
-  },
-  list: { gap: 12, paddingBottom: 32 },
+  root: { flex: 1, backgroundColor: colors.dashBg },
+  body: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  listContent: { gap: 10, paddingBottom: 36 },
+
   card: {
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderColor: colors.border,
+    backgroundColor: colors.dashCard,
     borderRadius: 14,
     borderWidth: 1,
+    borderColor: colors.dashBorder,
+    padding: 14,
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
-    padding: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
   },
-  cardLeft: { flex: 1 },
-  examName: { color: colors.black, fontSize: 15, fontWeight: '800' },
-  examMeta: { color: colors.mutedText, fontSize: 12, marginTop: 2 },
-  cardRight: { alignItems: 'flex-end', gap: 3 },
-  marks: { color: colors.black, fontSize: 16, fontWeight: '900' },
-  pct: { color: colors.mutedText, fontSize: 12 },
-  gradePill: {
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+  gradeCircle: {
+    width: 48, height: 48, borderRadius: 24,
+    borderWidth: 2,
+    alignItems: 'center', justifyContent: 'center',
   },
-  gradeText: { color: colors.white, fontSize: 12, fontWeight: '900' },
-  rank: { color: colors.mutedText, fontSize: 12 },
+  gradeText: { fontSize: 15, fontWeight: '900' },
+  cardBody: { flex: 1, gap: 4 },
+  examName: { fontSize: 14, fontWeight: '800', color: colors.dashText },
+  examMeta: { fontSize: 11, color: colors.dashSubText },
+  progressBg: { height: 4, backgroundColor: colors.dashBorder, borderRadius: 2, marginTop: 4 },
+  progressFill: { height: 4, borderRadius: 2 },
+  cardRight: { alignItems: 'flex-end', gap: 2 },
+  marks: { fontSize: 15, fontWeight: '900', color: colors.dashText },
+  pct: { fontSize: 11, color: colors.dashSubText },
+  rank: { fontSize: 11, color: colors.dashSubText },
 });

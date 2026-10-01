@@ -72,6 +72,9 @@ async function startAttempt(studentId, instituteId, examId) {
         'ALREADY_SUBMITTED',
       );
     }
+    if (!existing.bullmqJobId) {
+      await scheduleAttemptAutoSubmit(existing);
+    }
     return buildAttemptResponse(exam, existing);
   }
 
@@ -84,14 +87,18 @@ async function startAttempt(studentId, instituteId, examId) {
     answers: [],
   });
 
-  const delayMs = expiresAt.getTime() - Date.now();
-  if (delayMs > 0) {
-    const jobId = await scheduleAutoSubmit(attempt._id, delayMs);
-    attempt.bullmqJobId = jobId;
-    await attempt.save();
-  }
+  await scheduleAttemptAutoSubmit(attempt);
 
   return buildAttemptResponse(exam, attempt);
+}
+
+async function scheduleAttemptAutoSubmit(attempt) {
+  const delayMs = new Date(attempt.expiresAt).getTime() - Date.now();
+  if (delayMs <= 0) return;
+
+  const jobId = await scheduleAutoSubmit(attempt._id, delayMs);
+  attempt.bullmqJobId = jobId;
+  await attempt.save();
 }
 
 async function getAttempt(studentId, instituteId, examId) {
