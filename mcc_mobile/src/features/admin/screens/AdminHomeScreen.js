@@ -107,19 +107,16 @@ export default function AdminHomeScreen({ navigation }) {
       <View style={styles.header}>
         <SafeAreaView edges={['top']} style={styles.headerSafe}>
           <View style={styles.headerTop}>
-            <Text style={styles.menuIcon}>☰</Text>
             <View style={styles.headerBrand}>
               <View style={styles.brandIconCircle}>
-                <Text style={styles.brandIcon}>🎓</Text>
               </View>
               <View>
                 <Text style={styles.brandName} numberOfLines={1}>{user?.instituteName ?? 'Coaching'}</Text>
-                <Text style={styles.brandSub}>Management System</Text>
+                <Text style={styles.brandSub}>Administration Panel</Text>
               </View>
             </View>
             <View style={styles.headerRight}>
               <View style={styles.bellWrap}>
-                <Text style={styles.bellIcon}>🔔</Text>
                 <View style={styles.bellBadge}><Text style={styles.bellBadgeText}>3</Text></View>
               </View>
               <View style={styles.avatarCircle}>
@@ -254,8 +251,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brandIcon: { fontSize: 22 },
-  brandName: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  brandSub: { color: 'rgba(255,255,255,0.75)', fontSize: 11 },
+  brandName: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  brandSub: { color: 'rgba(255,255,255,0.75)', fontSize: 8 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bellWrap: { position: 'relative' },
   bellIcon: { fontSize: 22 },
