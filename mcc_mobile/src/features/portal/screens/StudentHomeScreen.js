@@ -330,7 +330,8 @@ export default function StudentHomeScreen({ navigation }) {
           <View style={styles.qaRow}>
             <QuickAction icon="👤" label="Profile" onPress={() => navigation.navigate('StudentProfile')} />
             <QuickAction icon="📊" label="Results" onPress={() => navigation.navigate('StudentResults')} />
-            <QuickAction icon="📅" label="Attendance" onPress={() => navigation.navigate('StudentAttendance')} />
+            <QuickAction icon="📅" label="Schedule" onPress={() => navigation.navigate('StudentSchedule')} />
+            <QuickAction icon="📋" label="Attendance" onPress={() => navigation.navigate('StudentAttendance')} />
             <QuickAction icon="🚪" label="Sign Out" onPress={logout} />
           </View>
         </View>

@@ -142,10 +142,29 @@ async function getDashboard(userId, instituteId) {
   };
 }
 
+async function getSchedule(userId, instituteId) {
+  const batch = await findBatch(userId, instituteId);
+  if (!batch) return [];
+
+  const Schedule = require('../../models/Schedule');
+  return Schedule.find({
+    instituteId,
+    batchId: batch._id,
+    isActive: true,
+    isDeleted: false,
+  })
+    .sort({ dayOfWeek: 1, startTime: 1 })
+    .select('-isDeleted -deletedAt -__v')
+    .populate({ path: 'subjectId', select: 'name code' })
+    .populate({ path: 'teacherId', select: 'name' })
+    .lean();
+}
+
 module.exports = {
   getBatch,
   getDashboard,
   getProfile,
+  getSchedule,
   getSubjects,
   getTeachers,
 };

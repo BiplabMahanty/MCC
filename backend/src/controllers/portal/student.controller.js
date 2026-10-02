@@ -11,6 +11,7 @@ module.exports = {
   getBatch: handler(studentService.getBatch),
   getDashboard: handler(studentService.getDashboard),
   getProfile: handler(studentService.getProfile),
+  getSchedule: handler(studentService.getSchedule),
   getSubjects: handler(studentService.getSubjects),
   getTeachers: handler(studentService.getTeachers),
 };

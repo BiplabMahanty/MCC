@@ -36,6 +36,9 @@ import FeePlanListScreen from '../features/admin/screens/FeePlanListScreen';
 import FeePlanFormScreen from '../features/admin/screens/FeePlanFormScreen';
 import FeeRecordListScreen from '../features/admin/screens/FeeRecordListScreen';
 import StudentFeeScreen from '../features/admin/screens/StudentFeeScreen';
+import ScheduleListScreen from '../features/schedule/screens/ScheduleListScreen';
+import ScheduleFormScreen from '../features/schedule/screens/ScheduleFormScreen';
+import ScheduleScreen from '../features/schedule/screens/ScheduleScreen';
 import useAuth from '../hooks/useAuth';
 import colors from '../theme/colors';
 
@@ -78,6 +81,8 @@ const ADMIN_PUSH_SCREENS = (
     <Stack.Screen name="FeePlanForm" component={FeePlanFormScreen} />
     <Stack.Screen name="FeeRecordList" component={FeeRecordListScreen} />
     <Stack.Screen name="StudentFee" component={StudentFeeScreen} />
+    <Stack.Screen name="ScheduleList" component={ScheduleListScreen} />
+    <Stack.Screen name="ScheduleForm" component={ScheduleFormScreen} />
   </>
 );
 
@@ -227,6 +232,7 @@ export default function RootNavigator() {
         <Stack.Screen name="TeacherExamList" component={ExamListScreen} initialParams={{ role: 'teacher' }} />
         <Stack.Screen name="ExamDetail" component={ExamDetailScreen} />
         <Stack.Screen name="TeacherExamAnalytics" component={TeacherExamAnalyticsScreen} />
+        <Stack.Screen name="TeacherSchedule" component={ScheduleScreen} initialParams={{ role: 'teacher' }} />
       </Stack.Navigator>
     );
   }
@@ -248,6 +254,7 @@ export default function RootNavigator() {
         <Stack.Screen name="ExamInstructions" component={ExamInstructionsScreen} />
         <Stack.Screen name="ExamEngine" component={ExamEngineScreen} />
         <Stack.Screen name="StudentResults" component={StudentResultsScreen} />
+        <Stack.Screen name="StudentSchedule" component={ScheduleScreen} initialParams={{ role: 'student' }} />
       </Stack.Navigator>
     );
   }

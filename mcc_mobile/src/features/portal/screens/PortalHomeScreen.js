@@ -23,6 +23,7 @@ const teacherSections = [
   { key: 'students', label: 'Students', route: 'TeacherStudents' },
   { key: 'questions', label: 'Question bank', route: 'TeacherQuestionBank' },
   { key: 'exams', label: 'Exams', route: 'TeacherExamList' },
+  { key: 'schedule', label: 'My schedule', route: 'TeacherSchedule' },
 ];
 
 const studentSections = [

@@ -17,6 +17,7 @@ router.get('/profile', asyncHandler(teacherController.getProfile));
 router.get('/batches', asyncHandler(teacherController.getBatches));
 router.get('/subjects', asyncHandler(teacherController.getSubjects));
 router.get('/students', asyncHandler(teacherController.getStudents));
+router.get('/schedule', asyncHandler(teacherController.getSchedule));
 router.use('/questions', teacherQuestionsRoutes);
 router.use('/exams', require('./teacherExams.routes'));
 router.use('/exams/:id', teacherAnalyticsRoutes);

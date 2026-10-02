@@ -11,6 +11,7 @@ const ITEMS = [
   { label: 'Subjects', icon: '📖', route: 'AdminEntityList', params: { entityType: 'subjects' } },
   { label: 'Question Bank', icon: '❓', route: 'AdminQuestionBank', params: { role: 'admin' } },
   { label: 'Exams', icon: '📝', route: 'AdminExamList', params: { role: 'admin' } },
+  { label: 'Schedule', icon: '🗓️', route: 'ScheduleList', params: {} },
   { label: 'Fee Plans', icon: '💳', route: 'FeePlanList', params: {} },
   { label: 'Analytics', icon: '📊', route: 'AdminAnalytics', params: {} },
 ];

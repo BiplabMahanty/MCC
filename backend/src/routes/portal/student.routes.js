@@ -20,6 +20,7 @@ router.get('/profile', asyncHandler(studentController.getProfile));
 router.get('/batch', asyncHandler(studentController.getBatch));
 router.get('/subjects', asyncHandler(studentController.getSubjects));
 router.get('/teachers', asyncHandler(studentController.getTeachers));
+router.get('/schedule', asyncHandler(studentController.getSchedule));
 router.use('/', studentAttemptRoutes);
 router.use('/', studentResultsRoutes);
 router.use('/', studentAttendanceRoutes);

@@ -21,6 +21,7 @@ const teachersRoutes = require('./teachers.routes');
 const uploadsRoutes = require('./uploads.routes');
 const attendanceRoutes = require('../attendance.routes');
 const feesRoutes = require('./fees.routes');
+const schedulesRoutes = require('./schedules.routes');
 
 const router = express.Router();
 
@@ -42,5 +43,6 @@ router.use('/questions', questionsRoutes);
 router.use('/uploads', uploadsRoutes);
 router.use('/attendance', attendanceRoutes);
 router.use('/fees', feesRoutes);
+router.use('/schedules', schedulesRoutes);
 
 module.exports = router;
