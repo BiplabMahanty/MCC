@@ -21,9 +21,11 @@ const EXAM_TYPES = [
   { _id: 'mock', name: 'Mock' },
 ];
 
+// Input dateStr/timeStr are in IST (UTC+5:30); convert to UTC ISO for the backend.
 function toIso(dateStr, timeStr) {
   if (!dateStr || !timeStr) return '';
-  const d = new Date(`${dateStr}T${timeStr}:00.000Z`);
+  // Parse as local (IST on device) by omitting Z
+  const d = new Date(`${dateStr}T${timeStr}:00`);
   return isNaN(d.getTime()) ? '' : d.toISOString();
 }
 
@@ -106,7 +108,20 @@ export default function ExamFormScreen({ navigation, route }) {
       resetDraft();
       navigation.goBack();
     } catch (e) {
-      Alert.alert('Save failed', e.message);
+      if (e.code === 'VALIDATION_ERROR' && Array.isArray(e.details) && e.details.length > 0) {
+        // Map server field errors back into the inline error state
+        const serverErrors = {};
+        e.details.forEach(({ field, message }) => {
+          serverErrors[field || '_general'] = message;
+        });
+        setErrors((prev) => ({ ...prev, ...serverErrors }));
+        Alert.alert(
+          'Validation failed',
+          e.details.map((d) => `• ${d.field ? d.field + ': ' : ''}${d.message}`).join('\n'),
+        );
+      } else {
+        Alert.alert('Save failed', e.message);
+      }
     }
   }
 
@@ -252,6 +267,10 @@ export default function ExamFormScreen({ navigation, route }) {
             }
           />
         </View>
+
+        {errors._general ? (
+          <Text style={styles.fieldError}>{errors._general}</Text>
+        ) : null}
 
         <AppButton
           disabled={saving}

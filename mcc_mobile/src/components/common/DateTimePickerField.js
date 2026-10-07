@@ -5,11 +5,27 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import colors from '../../theme/colors';
 
 // Converts separate date string (YYYY-MM-DD) and time string (HH:MM) to a Date object.
+// Treated as IST (UTC+5:30) — no Z suffix so the picker shows local time.
 function toDate(dateStr, timeStr) {
   if (!dateStr) return new Date();
-  const base = timeStr ? `${dateStr}T${timeStr}:00.000Z` : `${dateStr}T00:00:00.000Z`;
+  const base = timeStr ? `${dateStr}T${timeStr}:00` : `${dateStr}T00:00:00`;
   const d = new Date(base);
   return isNaN(d.getTime()) ? new Date() : d;
+}
+
+// Format a Date to IST date string YYYY-MM-DD
+function toISTDateStr(d) {
+  return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // en-CA gives YYYY-MM-DD
+}
+
+// Format a Date to IST time string HH:MM
+function toISTTimeStr(d) {
+  return d.toLocaleTimeString('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 }
 
 export default function DateTimePickerField({
@@ -26,7 +42,7 @@ export default function DateTimePickerField({
   const displayText = dateOnly
     ? dateValue || 'Tap to select'
     : dateValue && timeValue
-      ? `${dateValue}  ${timeValue} UTC`
+      ? `${dateValue}  ${timeValue} IST`
       : dateValue
         ? dateValue
         : 'Tap to select';
@@ -39,7 +55,7 @@ export default function DateTimePickerField({
       }
       if (mode === 'date') {
         if (selected) {
-          onChangeDateStr(selected.toISOString().slice(0, 10));
+          onChangeDateStr(toISTDateStr(selected));
         }
         if (dateOnly) {
           setMode(null);
@@ -50,7 +66,7 @@ export default function DateTimePickerField({
       }
       if (mode === 'time') {
         if (selected) {
-          onChangeTimeStr(selected.toISOString().slice(11, 16));
+          onChangeTimeStr(toISTTimeStr(selected));
         }
         setMode(null);
       }
