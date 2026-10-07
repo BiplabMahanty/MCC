@@ -30,6 +30,7 @@ function getCloudinary() {
 }
 
 async function createImageUpload(instituteId, input, category) {
+  console.log('[UPLOAD] createImageUpload called', { instituteId, input, category });
   const client = getCloudinary();
   const folder = `institutes/${instituteId}/${category}`;
   const publicId = randomUUID();
@@ -51,7 +52,7 @@ async function createImageUpload(instituteId, input, category) {
   const uploadUrl = `https://api.cloudinary.com/v1_1/${env.cloudinaryCloudName}/image/upload`;
   const publicUrl = `https://res.cloudinary.com/${env.cloudinaryCloudName}/image/upload/${storageKey}`;
 
-  return {
+  const result = {
     uploadUrl,
     url: publicUrl,
     storageKey,
@@ -68,6 +69,17 @@ async function createImageUpload(instituteId, input, category) {
       overwrite: 'false',
     },
   };
+
+  console.log('[UPLOAD] signed params generated', {
+    uploadUrl,
+    storageKey,
+    timestamp,
+    signature,
+    folder,
+    public_id: publicId,
+  });
+
+  return result;
 }
 
 function createQuestionImageUpload(instituteId, input) {
@@ -79,12 +91,15 @@ function createProfileImageUpload(instituteId, input) {
 }
 
 async function verifyQuestionImage(image) {
+  console.log('[UPLOAD] verifyQuestionImage called', { storageKey: image.storageKey });
   const client = getCloudinary();
 
   let result;
   try {
     result = await client.api.resource(image.storageKey, { resource_type: 'image' });
-  } catch {
+    console.log('[UPLOAD] Cloudinary resource found', { bytes: result.bytes, public_id: result.public_id });
+  } catch (err) {
+    console.log('[UPLOAD] Cloudinary resource NOT found', { storageKey: image.storageKey, error: err?.message, http_code: err?.http_code });
     throw new AppError(
       'Question image was not found in object storage.',
       400,
@@ -93,17 +108,20 @@ async function verifyQuestionImage(image) {
   }
 
   const actualSize = result.bytes;
+  console.log('[UPLOAD] verifying size', { actualSize });
   if (
     !Number.isFinite(actualSize) ||
     actualSize <= 0 ||
     actualSize > 5 * 1024 * 1024
   ) {
+    console.log('[UPLOAD] size check failed', { actualSize });
     throw new AppError(
       'Question image metadata is invalid.',
       400,
       'INVALID_IMAGE_UPLOAD',
     );
   }
+  console.log('[UPLOAD] verifyQuestionImage passed');
 }
 
 module.exports = {
