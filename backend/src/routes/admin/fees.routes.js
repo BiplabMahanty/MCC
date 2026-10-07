@@ -13,29 +13,21 @@ const {
 
 const router = express.Router();
 
-// Fee Plans
+// Fee Plans collection
 router.get('/', validate(feePlanQuerySchema, 'query'), c.listPlans);
 router.post('/', validate(createFeePlanSchema), c.createPlan);
+
+// Literal sub-paths must come before /:id
+router.post('/payments', validate(recordPaymentSchema), c.recordPayment);
+router.post('/mark-overdue', c.markOverdue);
+router.get('/students/:studentId/fees', c.studentFeeAdmin);
+router.patch('/records/:recordId/waive', validate(waiveRecordSchema), c.waiveRecord);
+router.get('/records/:recordId/payments', c.recordPayments);
+
+// Wildcard :id routes last
 router.get('/:id', c.getPlan);
 router.patch('/:id', validate(updateFeePlanSchema), c.updatePlan);
 router.delete('/:id', c.deletePlan);
-
-// Fee Records for a plan
 router.get('/:id/records', validate(feeRecordQuerySchema, 'query'), c.listRecords);
-
-// Waive a specific fee record
-router.patch('/records/:recordId/waive', validate(waiveRecordSchema), c.waiveRecord);
-
-// Payments on a specific fee record
-router.get('/records/:recordId/payments', c.recordPayments);
-
-// Record a payment
-router.post('/payments', validate(recordPaymentSchema), c.recordPayment);
-
-// Student fee summary (admin view)
-router.get('/students/:studentId/fees', c.studentFeeAdmin);
-
-// Mark overdue (can be called manually or by a cron job)
-router.post('/mark-overdue', c.markOverdue);
 
 module.exports = router;

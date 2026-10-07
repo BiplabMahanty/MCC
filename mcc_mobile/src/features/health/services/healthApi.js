@@ -10,7 +10,7 @@ export async function getHealth({ signal } = {}) {
     });
   } catch {
     throw new Error(
-      `Could not reach ${env.apiUrl}. Check that the backend is running.`,
+      `Turn on your mobile data or connect to a Wi-Fi network.`,
     );
   }
 
