@@ -96,7 +96,7 @@ export default function FeePlanListScreen({ navigation }) {
   const deleteMutation = useDeleteFeePlan();
 
   const plans = useMemo(
-    () => query.data?.pages.flatMap((p) => p.plans) ?? [],
+    () => query.data?.pages.flatMap((p) => p.data) ?? [],
     [query.data],
   );
 
@@ -142,7 +142,7 @@ export default function FeePlanListScreen({ navigation }) {
             </View>
           </View>
         </SafeAreaView>
-        <View style={styles.waveBump} />
+        <View style={styles.waveBump} pointerEvents="none" />
       </View>
 
       {/* ── BODY ── */}
@@ -179,6 +179,8 @@ export default function FeePlanListScreen({ navigation }) {
               if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
             }}
             onEndReachedThreshold={0.4}
+            refreshing={query.isFetching && !query.isFetchingNextPage}
+            onRefresh={query.refetch}
             ListEmptyComponent={
               <EmptyState title="No fee plans found" message="Create the first fee plan for a batch." />
             }

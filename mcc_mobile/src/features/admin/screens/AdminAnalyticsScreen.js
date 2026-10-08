@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import ErrorState from '../../../components/common/ErrorState';
@@ -23,7 +23,9 @@ export default function AdminAnalyticsScreen() {
   return (
     <Screen>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} refreshControl={
+        <RefreshControl refreshing={isFetching} onRefresh={refetch} />
+      }>
         <View>
           <Text style={styles.eyebrow}>ADMIN ANALYTICS</Text>
           <Text style={styles.title}>Institute performance</Text>

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ScrollView, StyleSheet, Text, View, Pressable, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import Screen from '../../../components/common/Screen';
@@ -80,7 +80,14 @@ export default function TeacherDetailScreen({ navigation, route }) {
         <View style={{ width: 60 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={teacherQuery.isFetching || batchesQuery.isFetching}
+            onRefresh={() => { teacherQuery.refetch(); batchesQuery.refetch(); }}
+          />
+        }
+      >
         {teacherQuery.isPending ? (
           <ActivityIndicator color={colors.dashGreen} style={{ marginTop: 40 }} />
         ) : teacher ? (

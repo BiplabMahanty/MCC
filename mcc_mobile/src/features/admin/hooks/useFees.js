@@ -26,6 +26,10 @@ export function useFeePlans({ batchId, isActive } = {}) {
       const { page, totalPages } = lastPage.pagination;
       return page < totalPages ? page + 1 : undefined;
     },
+    select: (data) => ({
+      ...data,
+      pages: data.pages.map((p) => ({ ...p, data: p.plans })),
+    }),
   });
 }
 

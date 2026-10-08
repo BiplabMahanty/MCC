@@ -196,6 +196,8 @@ export default function QuestionBankScreen({ navigation, route }) {
               query.fetchNextPage();
           }}
           onEndReachedThreshold={0.4}
+          refreshing={query.isFetching && !query.isFetchingNextPage}
+          onRefresh={query.refetch}
           renderItem={({ item }) => (
             <QuestionItem
               admin={admin}

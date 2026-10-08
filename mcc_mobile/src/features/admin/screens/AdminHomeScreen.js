@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View, Pressable, Dimensions } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Pressable, Dimensions, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
@@ -140,6 +140,9 @@ export default function AdminHomeScreen({ navigation }) {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isFetching} onRefresh={refetch} />
+        }
       >
         {/* Stat Cards 2×2 */}
         <View style={styles.statGrid}>

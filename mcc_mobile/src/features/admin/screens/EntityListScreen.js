@@ -128,6 +128,8 @@ export default function EntityListScreen({ navigation, route }) {
             }
           }}
           onEndReachedThreshold={0.4}
+          refreshing={query.isFetching && !query.isFetchingNextPage}
+          onRefresh={query.refetch}
           renderItem={({ item }) => {
             const itemProps = {
               item,

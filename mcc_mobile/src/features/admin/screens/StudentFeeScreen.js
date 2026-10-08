@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   Alert,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -191,6 +192,9 @@ export default function StudentFeeScreen({ navigation, route }) {
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={feesQuery.isFetching} onRefresh={feesQuery.refetch} />
+          }
         >
           {/* Summary grid */}
           <SummaryGrid summary={feesQuery.data?.summary} />

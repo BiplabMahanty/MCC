@@ -206,6 +206,8 @@ export default function FeeRecordListScreen({ navigation, route }) {
                 recordsQuery.fetchNextPage();
             }}
             onEndReachedThreshold={0.4}
+            refreshing={recordsQuery.isFetching && !recordsQuery.isFetchingNextPage}
+            onRefresh={() => { planQuery.refetch(); recordsQuery.refetch(); }}
             ListEmptyComponent={
               <EmptyState title="No records found" message="Try a different status filter." />
             }
