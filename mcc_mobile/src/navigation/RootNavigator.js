@@ -29,6 +29,7 @@ import ExamDetailScreen from '../features/exams/screens/ExamDetailScreen';
 import ExamInstructionsScreen from '../features/exams/screens/ExamInstructionsScreen';
 import ExamEngineScreen from '../features/exams/screens/ExamEngineScreen';
 import ExamResultScreen from '../features/exams/screens/ExamResultScreen';
+import ExamReviewScreen from '../features/exams/screens/ExamReviewScreen';
 import StudentResultsScreen from '../features/exams/screens/StudentResultsScreen';
 import TeacherExamAnalyticsScreen from '../features/exams/screens/TeacherExamAnalyticsScreen';
 import TeacherDetailScreen from '../features/admin/screens/TeacherDetailScreen';
@@ -251,6 +252,7 @@ export default function RootNavigator() {
         <Stack.Screen name="StudentExamInstructions" component={ExamInstructionsScreen} />
         <Stack.Screen name="StudentExamEngine" component={ExamEngineScreen} />
         <Stack.Screen name="StudentExamResult" component={ExamResultScreen} />
+        <Stack.Screen name="ExamReview" component={ExamReviewScreen} />
         <Stack.Screen name="ExamInstructions" component={ExamInstructionsScreen} />
         <Stack.Screen name="ExamEngine" component={ExamEngineScreen} />
         <Stack.Screen name="StudentResults" component={StudentResultsScreen} />

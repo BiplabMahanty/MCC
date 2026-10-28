@@ -33,4 +33,16 @@ const getResult = [
   }),
 ];
 
-module.exports = { getResult, listResults };
+const getReview = [
+  validate(idParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const data = await resultService.getAttemptReview(
+      req.user._id,
+      req.user.instituteId,
+      req.params.id,
+    );
+    res.json({ data });
+  }),
+];
+
+module.exports = { getResult, getReview, listResults };

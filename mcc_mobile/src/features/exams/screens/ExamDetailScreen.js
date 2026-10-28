@@ -159,12 +159,33 @@ export default function ExamDetailScreen({ navigation, route }) {
           />
         )}
 
-        {isStudent && exam.status === 'published' && (
+        {isStudent && exam.status === 'published' && !exam.attemptStatus && (
           <AppButton
             label="Start exam"
             onPress={() => navigation.navigate('ExamInstructions', { id })}
           />
         )}
+
+        {isStudent && exam.attemptStatus === 'in_progress' && (
+          <AppButton
+            label="Continue exam"
+            onPress={() => navigation.navigate('ExamEngine', { examId: id })}
+          />
+        )}
+
+        {isStudent &&
+          (exam.attemptStatus === 'submitted' || exam.attemptStatus === 'auto_submitted') && (
+            <>
+              <AppButton
+                label="View Result"
+                onPress={() => navigation.navigate('StudentExamResult', { examId: id })}
+              />
+              <AppButton
+                label="Review Answers"
+                onPress={() => navigation.navigate('ExamReview', { examId: id })}
+              />
+            </>
+          )}
 
         {!isAdmin && !isStudent && (
           <AppButton

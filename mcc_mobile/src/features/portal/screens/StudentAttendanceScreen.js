@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import ErrorState from '../../../components/common/ErrorState';
 import Loader from '../../../components/common/Loader';
@@ -80,6 +80,7 @@ export default function StudentAttendanceScreen({ navigation }) {
                   <Text style={styles.emptyText}>No attendance records found.</Text>
                 }
                 showsVerticalScrollIndicator={false}
+                refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />}
               />
             </View>
           </>

@@ -159,9 +159,63 @@ async function getAttemptResult(attemptId, studentId) {
   return { attempt, result };
 }
 
+// ── Question-level review (post-submit only) ──────────────────────────────────
+
+async function getAttemptReview(studentId, instituteId, examId) {
+  const Exam = require('../../models/Exam');
+
+  const attempt = await ExamAttempt.findOne({ examId, studentId, instituteId }).lean();
+  if (!attempt) throw new AppError('Attempt not found.', 404, 'NOT_FOUND');
+  if (attempt.status === 'in_progress')
+    throw new AppError('Exam not yet submitted.', 400, 'NOT_SUBMITTED');
+
+  // Load exam with correctOptionIndex (bypassing toJSON transform)
+  const exam = await Exam.findOne({ _id: examId, instituteId })
+    .select('+questions.correctOptionIndex')
+    .lean();
+  if (!exam) throw new AppError('Exam not found.', 404, 'NOT_FOUND');
+
+  const answerMap = {};
+  for (const a of attempt.answers) {
+    answerMap[a.questionIndex] = a.selectedOptionIndex;
+  }
+
+  const questions = exam.questions.map((q, i) => {
+    const selected = answerMap[i] ?? null;
+    const correct = q.correctOptionIndex;
+    let verdict = 'unanswered';
+    if (selected !== null) {
+      verdict = selected === correct ? 'correct' : 'wrong';
+    }
+    return {
+      index: i,
+      content: q.content,
+      options: q.options,
+      topic: q.topic,
+      difficulty: q.difficulty,
+      correctOptionIndex: correct,
+      selectedOptionIndex: selected,
+      verdict,
+    };
+  });
+
+  return {
+    examName: exam.name,
+    totalQuestions: attempt.totalQuestions,
+    correct: attempt.correct,
+    wrong: attempt.wrong,
+    unanswered: attempt.unanswered,
+    obtainedMarks: attempt.obtainedMarks,
+    totalMarks: attempt.totalMarks,
+    percentage: attempt.percentage,
+    questions,
+  };
+}
+
 module.exports = {
   createOrUpdateResult,
   getAttemptResult,
+  getAttemptReview,
   getStudentResult,
   listExamResults,
   listStudentResults,

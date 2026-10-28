@@ -42,6 +42,10 @@ function StudentExamCard({ item, onPress }) {
   const start = item.startTime ? new Date(item.startTime).toLocaleString('en-IN') : '—';
   const sc = statusColor(item.status);
   const sb = statusBg(item.status);
+
+  const submitted = item.attemptStatus === 'submitted' || item.attemptStatus === 'auto_submitted';
+  const inProgress = item.attemptStatus === 'in_progress';
+
   return (
     <Pressable
       style={({ pressed }) => [styles.sCard, pressed && { opacity: 0.7 }]}
@@ -55,8 +59,20 @@ function StudentExamCard({ item, onPress }) {
           <Text style={styles.sCardName} numberOfLines={2}>{item.name}</Text>
           <Text style={styles.sCardMeta}>{item.batchId?.name} · {item.subjectId?.name}</Text>
         </View>
-        <View style={[styles.sBadge, { backgroundColor: sb }]}>
-          <Text style={[styles.sBadgeText, { color: sc }]}>{item.status?.toUpperCase()}</Text>
+        <View style={styles.sBadgeCol}>
+          <View style={[styles.sBadge, { backgroundColor: sb }]}>
+            <Text style={[styles.sBadgeText, { color: sc }]}>{item.status?.toUpperCase()}</Text>
+          </View>
+          {submitted && (
+            <View style={[styles.sBadge, { backgroundColor: '#DCFCE7' }]}>
+              <Text style={[styles.sBadgeText, { color: colors.dashUp }]}>✓ SUBMITTED</Text>
+            </View>
+          )}
+          {inProgress && (
+            <View style={[styles.sBadge, { backgroundColor: '#FEF3C7' }]}>
+              <Text style={[styles.sBadgeText, { color: '#D97706' }]}>IN PROGRESS</Text>
+            </View>
+          )}
         </View>
       </View>
       <View style={styles.sCardFooter}>
@@ -267,6 +283,7 @@ const styles = StyleSheet.create({
   sCardBody: { flex: 1, gap: 3 },
   sCardName: { fontSize: 14, fontWeight: '800', color: colors.dashText },
   sCardMeta: { fontSize: 12, color: colors.dashSubText },
+  sBadgeCol: { gap: 4, alignItems: 'flex-end' },
   sBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   sBadgeText: { fontSize: 10, fontWeight: '700' },
   sCardFooter: { flexDirection: 'row', gap: 16 },

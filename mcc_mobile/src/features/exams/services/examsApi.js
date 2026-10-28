@@ -75,6 +75,10 @@ export function submitAttempt(examId) {
   });
 }
 
+export function getAttemptReview(examId, signal) {
+  return apiRequest(`/student/results/${examId}/review`, { auth: true, signal });
+}
+
 // Results
 export function listStudentResults(params, signal) {
   return apiRequest(`/student/results${qs(params)}`, { auth: true, signal });

@@ -1,5 +1,6 @@
 const Batch = require('../../models/Batch');
 const Exam = require('../../models/Exam');
+const ExamAttempt = require('../../models/ExamAttempt');
 const Subject = require('../../models/Subject');
 const User = require('../../models/User');
 const AppError = require('../../utils/AppError');
@@ -135,7 +136,24 @@ async function listStudentExams(userId, instituteId, query) {
     Exam.countDocuments(filter),
   ]);
 
-  return { data: exams, pagination: paginationMeta(page, limit, total) };
+  // Attach attempt status for each exam
+  const examIds = exams.map((e) => e._id);
+  const attempts = await ExamAttempt.find({
+    examId: { $in: examIds },
+    studentId: userId,
+  })
+    .select('examId status')
+    .lean();
+
+  const attemptMap = {};
+  for (const a of attempts) attemptMap[String(a.examId)] = a.status;
+
+  const data = exams.map((e) => ({
+    ...e,
+    attemptStatus: attemptMap[String(e._id)] ?? null,
+  }));
+
+  return { data, pagination: paginationMeta(page, limit, total) };
 }
 
 async function getStudentExam(userId, instituteId, id) {
@@ -162,6 +180,12 @@ async function getStudentExam(userId, instituteId, id) {
       return copy;
     });
   }
+
+  // Attach attempt status
+  const attempt = await ExamAttempt.findOne({ examId: id, studentId: userId })
+    .select('status')
+    .lean();
+  exam.attemptStatus = attempt?.status ?? null;
 
   return exam;
 }

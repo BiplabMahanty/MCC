@@ -116,6 +116,13 @@ export default function ExamResultScreen({ navigation, route }) {
           </View>
         )}
 
+        {submitted && (
+          <AppButton
+            label="Review Answers"
+            onPress={() => navigation.navigate('ExamReview', { examId })}
+          />
+        )}
+
         <AppButton
           label="Back to exams"
           onPress={() => navigation.popToTop()}

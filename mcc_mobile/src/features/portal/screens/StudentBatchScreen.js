@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import EmptyState from '../../../components/common/EmptyState';
 import ErrorState from '../../../components/common/ErrorState';
@@ -49,6 +49,7 @@ export default function StudentBatchScreen({ navigation }) {
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />}
       >
         {query.isPending ? <Loader message="Loading batch…" /> : null}
         {query.error ? (

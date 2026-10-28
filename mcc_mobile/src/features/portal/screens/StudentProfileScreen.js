@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import ErrorState from '../../../components/common/ErrorState';
 import Loader from '../../../components/common/Loader';
@@ -45,6 +45,7 @@ export default function StudentProfileScreen({ navigation }) {
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />}
       >
         {query.isPending ? <Loader message="Loading profile…" /> : null}
         {query.error ? (

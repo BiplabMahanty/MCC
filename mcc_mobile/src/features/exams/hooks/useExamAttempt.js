@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getAttempt,
+  getAttemptReview,
   startAttempt,
   submitAttempt,
   syncAnswers,
@@ -21,6 +22,16 @@ export function useAttempt(examId) {
     queryFn: ({ signal }) => getAttempt(examId, signal),
     enabled: !!examId,
     staleTime: 0,
+  });
+}
+
+export function useAttemptReview(examId) {
+  return useQuery({
+    queryKey: ['attemptReview', examId],
+    queryFn: ({ signal }) => getAttemptReview(examId, signal),
+    enabled: !!examId,
+    select: (d) => d.data,
+    staleTime: Infinity,
   });
 }
 

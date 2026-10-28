@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import useAuth from '../../../hooks/useAuth';
-import useAdminDashboard from '../hooks/useAdminDashboard';
+import { useAdminDashboardHome } from '../hooks/useAdminDashboard';
 import colors from '../../../theme/colors';
 
 const { width: SW } = Dimensions.get('window');
@@ -15,24 +15,34 @@ function getGreeting() {
   return 'Good Evening';
 }
 
+function formatTime(hhmm) {
+  if (!hhmm) return '';
+  const [h, m] = hhmm.split(':').map(Number);
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${suffix}`;
+}
+
+function formatCurrency(amount) {
+  if (amount === undefined || amount === null) return '—';
+  return `₹${Number(amount).toLocaleString('en-IN')}`;
+}
+
+function formatExamDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return (
+    d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    '  •  ' +
+    d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+  );
+}
+
 const STAT_CARDS = [
-  { key: 'students', label: 'Total Students', iconBg: colors.iconBgGreen, iconColor: colors.iconGreen, icon: '👥', trend: '+12%' },
-  { key: 'teachers', label: 'Total Teachers', iconBg: colors.iconBgBlue, iconColor: colors.iconBlue, icon: '👨‍🏫', trend: '+9%' },
-  { key: 'courses', label: 'Total Courses', iconBg: colors.iconBgPurple, iconColor: colors.iconPurple, icon: '📚', trend: '+14%' },
-  { key: 'batches', label: 'Total Batches', iconBg: colors.iconBgOrange, iconColor: colors.iconOrange, icon: '📅', trend: '+20%' },
-];
-
-const FEE_ITEMS = [
-  { label: 'Total Collected', value: '₹2,48,500', trend: '+15%', up: true, iconBg: colors.iconBgGreen, icon: '💰' },
-  { label: 'Pending Amount', value: '₹48,200', trend: '-8%', up: false, iconBg: colors.iconBgOrange, icon: '⏳' },
-  { label: 'Total Fees', value: '₹2,96,700', trend: '+12%', up: true, iconBg: colors.iconBgPurple, icon: '📄' },
-  { label: 'Pending Students', value: '18', trend: '-5%', up: false, iconBg: colors.iconBgPink, icon: '👤' },
-];
-
-const TODAY_CLASSES = [
-  { subject: 'Mathematics', time: '09:00 AM – 10:00 AM', course: 'Class 10', batch: 'Batch A', status: 'Ongoing', iconBg: colors.iconBgBlue, icon: '🔢' },
-  { subject: 'Physics', time: '11:15 AM – 12:15 PM', course: 'Class 10', batch: 'Batch B', status: 'Upcoming', iconBg: colors.iconBgPurple, icon: '⚛️' },
-  { subject: 'Chemistry', time: '02:00 PM – 03:00 PM', course: 'Class 12', batch: 'Batch C', status: 'Upcoming', iconBg: colors.iconBgOrange, icon: '🧪' },
+  { key: 'students', label: 'Total Students', iconBg: colors.iconBgGreen, icon: '👥' },
+  { key: 'teachers', label: 'Total Teachers', iconBg: colors.iconBgBlue, icon: '👨🏫' },
+  { key: 'courses',  label: 'Total Courses',  iconBg: colors.iconBgPurple, icon: '📚' },
+  { key: 'batches',  label: 'Total Batches',  iconBg: colors.iconBgOrange, icon: '📅' },
 ];
 
 function StatCard({ item, count, onPress }) {
@@ -46,58 +56,59 @@ function StatCard({ item, count, onPress }) {
       </View>
       <Text style={styles.statLabel}>{item.label}</Text>
       <Text style={styles.statCount}>{count ?? '—'}</Text>
-      <View style={styles.statTrendRow}>
-        <Text style={styles.statTrendUp}>↑ {item.trend}</Text>
-        <Text style={styles.statVs}> vs last month</Text>
-      </View>
     </Pressable>
   );
 }
 
-function FeeCard({ item }) {
+function FeeCard({ icon, iconBg, label, value, valueStyle }) {
   return (
     <View style={styles.feeCard}>
-      <View style={[styles.feeIconCircle, { backgroundColor: item.iconBg }]}>
-        <Text style={styles.feeIcon}>{item.icon}</Text>
+      <View style={[styles.feeIconCircle, { backgroundColor: iconBg }]}>
+        <Text style={styles.feeIcon}>{icon}</Text>
       </View>
-      <Text style={styles.feeLabel}>{item.label}</Text>
-      <Text style={[styles.feeValue, !item.up && styles.feeValueOrange]}>{item.value}</Text>
-      <View style={styles.feeTrendRow}>
-        <Text style={[styles.feeTrend, item.up ? styles.trendUp : styles.trendDown]}>
-          {item.up ? '↑' : '↓'} {item.trend}
-        </Text>
-        <Text style={styles.feeVs}> vs last month</Text>
-      </View>
+      <Text style={styles.feeLabel}>{label}</Text>
+      <Text style={[styles.feeValue, valueStyle]}>{value}</Text>
     </View>
   );
 }
 
 function ClassRow({ item }) {
-  const isOngoing = item.status === 'Ongoing';
+  const now = new Date();
+  const [sh, sm] = item.startTime.split(':').map(Number);
+  const [eh, em] = item.endTime.split(':').map(Number);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const isOngoing = nowMin >= sh * 60 + sm && nowMin < eh * 60 + em;
+
   return (
     <View style={styles.classRow}>
-      <View style={[styles.classIconCircle, { backgroundColor: item.iconBg }]}>
-        <Text style={styles.classIcon}>{item.icon}</Text>
+      <View style={[styles.classIconCircle, { backgroundColor: colors.iconBgBlue }]}>
+        <Text style={styles.classIcon}>📖</Text>
       </View>
       <View style={styles.classInfo}>
         <Text style={styles.classSubject}>{item.subject}</Text>
-        <Text style={styles.classTime}>{item.time}</Text>
-        <Text style={styles.classMeta}>{item.course} • {item.batch}</Text>
+        <Text style={styles.classTime}>{formatTime(item.startTime)} – {formatTime(item.endTime)}</Text>
+        <Text style={styles.classMeta}>{item.batch}{item.room ? `  •  ${item.room}` : ''}</Text>
       </View>
       <View style={[styles.statusBadge, isOngoing ? styles.badgeOngoing : styles.badgeUpcoming]}>
         <Text style={[styles.statusText, isOngoing ? styles.statusOngoing : styles.statusUpcoming]}>
-          {item.status}
+          {isOngoing ? 'Ongoing' : 'Upcoming'}
         </Text>
       </View>
-      <Text style={styles.classChevron}>›</Text>
     </View>
   );
 }
 
 export default function AdminHomeScreen({ navigation }) {
   const { user } = useAuth();
-  const { data, isFetching, error, refetch } = useAdminDashboard();
-  const stats = data?.data;
+  const { data, isFetching, error, refetch } = useAdminDashboardHome();
+  const home = data?.data;
+  const stats = home?.stats;
+  const fee = home?.feeSummary;
+  const classes = home?.todayClasses ?? [];
+  const exam = home?.upcomingExam;
+  const unread = home?.unreadNotifications ?? 0;
+
+  const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
 
   return (
     <View style={styles.root}>
@@ -108,17 +119,20 @@ export default function AdminHomeScreen({ navigation }) {
         <SafeAreaView edges={['top']} style={styles.headerSafe}>
           <View style={styles.headerTop}>
             <View style={styles.headerBrand}>
-              <View style={styles.brandIconCircle}>
-              </View>
+              <View style={styles.brandIconCircle} />
               <View>
                 <Text style={styles.brandName} numberOfLines={1}>{user?.instituteName ?? 'Coaching'}</Text>
                 <Text style={styles.brandSub}>Administration Panel</Text>
               </View>
             </View>
             <View style={styles.headerRight}>
-              <View style={styles.bellWrap}>
-                <View style={styles.bellBadge}><Text style={styles.bellBadgeText}>3</Text></View>
-              </View>
+              {unread > 0 && (
+                <View style={styles.bellWrap}>
+                  <View style={styles.bellBadge}>
+                    <Text style={styles.bellBadgeText}>{unread > 99 ? '99+' : unread}</Text>
+                  </View>
+                </View>
+              )}
               <View style={styles.avatarCircle}>
                 <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
               </View>
@@ -131,7 +145,6 @@ export default function AdminHomeScreen({ navigation }) {
           </View>
           <Text style={styles.greetingSub}>Here's a quick overview of your institute today.</Text>
         </SafeAreaView>
-        {/* decorative wave */}
         <View style={styles.waveBump} />
       </View>
 
@@ -164,13 +177,14 @@ export default function AdminHomeScreen({ navigation }) {
               <Text style={styles.feeSectionIcon}>💳</Text>
               <Text style={styles.feeSectionTitle}>Fee Collection</Text>
               <View style={styles.monthPill}>
-                <Text style={styles.monthText}>📅 August 2025 ▾</Text>
+                <Text style={styles.monthText}>📅 {currentMonth}</Text>
               </View>
             </View>
             <View style={styles.feeGrid}>
-              {FEE_ITEMS.map((item) => (
-                <FeeCard key={item.label} item={item} />
-              ))}
+              <FeeCard icon="💰" iconBg={colors.iconBgGreen}  label="Total Collected"  value={formatCurrency(fee?.totalCollected)} />
+              <FeeCard icon="⏳" iconBg={colors.iconBgOrange} label="Pending Amount"   value={formatCurrency(fee?.pendingAmount)}  valueStyle={styles.feeValueOrange} />
+              <FeeCard icon="📄" iconBg={colors.iconBgPurple} label="Total Fees"       value={formatCurrency(fee?.totalFees)} />
+              <FeeCard icon="👤" iconBg={colors.iconBgPink}   label="Pending Students" value={fee?.pendingStudents ?? '—'}          valueStyle={styles.feeValueOrange} />
             </View>
           </View>
 
@@ -183,21 +197,25 @@ export default function AdminHomeScreen({ navigation }) {
                 <Text style={styles.viewAll}>View All →</Text>
               </Pressable>
             </View>
-            <View style={styles.examCard}>
-              <View style={styles.examCardIconCircle}>
-                <Text style={styles.examCardIcon}>📋</Text>
+            {exam ? (
+              <View style={styles.examCard}>
+                <View style={styles.examCardIconCircle}>
+                  <Text style={styles.examCardIcon}>📋</Text>
+                </View>
+                <View style={styles.examCardInfo}>
+                  <Text style={styles.examCardSubject}>{exam.subject}</Text>
+                  <Text style={styles.examCardMeta}>{exam.name}  •  {exam.batch}</Text>
+                  <Text style={styles.examCardDate}>📅  {formatExamDate(exam.startTime)}</Text>
+                </View>
               </View>
-              <View style={styles.examCardInfo}>
-                <Text style={styles.examCardSubject}>Mathematics</Text>
-                <Text style={styles.examCardMeta}>Class 10  •  Batch A</Text>
-                <Text style={styles.examCardDate}>📅  26 Aug 2025  •  10:00 AM</Text>
-              </View>
-            </View>
+            ) : (
+              <Text style={styles.emptyText}>No upcoming exams.</Text>
+            )}
             <Pressable
               style={({ pressed }) => [styles.viewExamBtn, pressed && styles.pressed]}
               onPress={() => navigation.navigate('AdminExamList', { role: 'admin' })}
             >
-              <Text style={styles.viewExamText}>View Exam  →</Text>
+              <Text style={styles.viewExamText}>View Exams  →</Text>
             </Pressable>
           </View>
         </View>
@@ -207,13 +225,12 @@ export default function AdminHomeScreen({ navigation }) {
           <View style={styles.classesSectionHeader}>
             <Text style={styles.classesSectionIcon}>📅</Text>
             <Text style={styles.classesSectionTitle}>Today's Classes</Text>
-            <Pressable>
-              <Text style={styles.viewAll}>View All →</Text>
-            </Pressable>
           </View>
-          {TODAY_CLASSES.map((item) => (
-            <ClassRow key={item.subject} item={item} />
-          ))}
+          {classes.length === 0 ? (
+            <Text style={styles.emptyText}>No classes scheduled for today.</Text>
+          ) : (
+            classes.map((item, i) => <ClassRow key={i} item={item} />)
+          )}
         </View>
 
         {error ? (
@@ -225,8 +242,6 @@ export default function AdminHomeScreen({ navigation }) {
     </View>
   );
 }
-
-const HEADER_H = 200;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.dashBg },
@@ -243,7 +258,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     gap: 10,
   },
-  menuIcon: { fontSize: 20, color: '#fff', marginRight: 2 },
   headerBrand: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   brandIconCircle: {
     width: 44,
@@ -253,16 +267,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  brandIcon: { fontSize: 22 },
   brandName: { color: '#fff', fontSize: 12, fontWeight: '800' },
   brandSub: { color: 'rgba(255,255,255,0.75)', fontSize: 8 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bellWrap: { position: 'relative' },
-  bellIcon: { fontSize: 22 },
   bellBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
     backgroundColor: '#EF4444',
     borderRadius: 8,
     minWidth: 16,
@@ -331,9 +340,6 @@ const styles = StyleSheet.create({
   statIcon: { fontSize: 20 },
   statLabel: { fontSize: 12, color: colors.dashSubText, fontWeight: '500' },
   statCount: { fontSize: 26, fontWeight: '900', color: colors.dashText, letterSpacing: -0.5 },
-  statTrendRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
-  statTrendUp: { fontSize: 12, fontWeight: '700', color: colors.dashUp },
-  statVs: { fontSize: 11, color: colors.dashSubText },
 
   // Mid row
   midRow: { flexDirection: 'row', gap: 10 },
@@ -384,11 +390,6 @@ const styles = StyleSheet.create({
   feeLabel: { fontSize: 10, color: colors.dashSubText },
   feeValue: { fontSize: 13, fontWeight: '900', color: colors.dashText },
   feeValueOrange: { color: colors.dashDown },
-  feeTrendRow: { flexDirection: 'row', alignItems: 'center' },
-  feeTrend: { fontSize: 10, fontWeight: '700' },
-  trendUp: { color: colors.dashUp },
-  trendDown: { color: colors.dashDown },
-  feeVs: { fontSize: 9, color: colors.dashSubText },
 
   // Exam section
   examSection: {
@@ -485,7 +486,8 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 10, fontWeight: '700' },
   statusOngoing: { color: colors.dashUp },
   statusUpcoming: { color: colors.dashSubText },
-  classChevron: { fontSize: 20, color: colors.dashSubText },
+
+  emptyText: { fontSize: 12, color: colors.dashSubText, fontStyle: 'italic' },
 
   // Retry
   retryBtn: {

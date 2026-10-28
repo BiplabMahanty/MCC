@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import ErrorState from '../../../components/common/ErrorState';
 import Loader from '../../../components/common/Loader';
@@ -41,7 +41,7 @@ export default function PortalProfileScreen({ navigation, route }) {
   return (
     <Screen>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={query.isRefetching} onRefresh={query.refetch} />}>
         <PortalHeader
           onBack={navigation.goBack}
           subtitle="Account and institute profile information"

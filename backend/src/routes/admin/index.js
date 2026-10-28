@@ -27,6 +27,7 @@ const router = express.Router();
 
 router.use(authenticate, authorize(ROLES.ADMIN));
 router.get('/dashboard', asyncHandler(dashboardController.getDashboard));
+router.get('/dashboard-home', asyncHandler(dashboardController.getDashboardHome));
 router.get(
   '/analytics',
   validate(analyticsQuerySchema, 'query'),

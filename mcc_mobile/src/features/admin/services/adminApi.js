@@ -17,6 +17,10 @@ export function getAdminDashboard({ signal } = {}) {
   return apiRequest('/admin/dashboard', { auth: true, signal });
 }
 
+export function getAdminDashboardHome({ signal } = {}) {
+  return apiRequest('/admin/dashboard-home', { auth: true, signal });
+}
+
 export function getAdminAnalytics(params = {}, { signal } = {}) {
   return apiRequest(`/admin/analytics${queryString(params)}`, {
     auth: true,
