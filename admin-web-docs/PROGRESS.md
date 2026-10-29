@@ -280,15 +280,17 @@ Last updated: 2026-10-28
 
 ## Phase 12 — Attendance Management
 
-Status: Not started
+Status: ✅ Completed
 
 ### Done
-- Nothing yet.
+- Attendance list page with batchId and month filters
+- Mark Attendance modal (batch + date + per-student status with quick "All" buttons)
+- Summary bar showing present/absent/late/excused counts per record
+- Upsert behavior via PUT /api/admin/attendance
+- OperationsRoutes wired to AttendancePage
 
 ### Pending
-- Attendance list page with batchId, date, month filters
-- Mark Attendance form (batch + date + per-student status)
-- Attendance summary per batch
+- Nothing.
 
 ### Known bugs
 - None.
@@ -297,15 +299,21 @@ Status: Not started
 
 ## Phase 13 — Notifications
 
-Status: Not started
+Status: ✅ Completed
+
+Last updated: 2026-10-28
 
 ### Done
-- Nothing yet.
+- `src/api/notifications.js` — listNotifications, markRead, sendAnnouncement
+- `src/hooks/useNotifications.js` — useNotifications, useMarkRead, useSendAnnouncement
+- Notifications page (`/notifications`) with full list (100 most recent), unread count badge, unread highlight
+- Per-notification "Mark read" button and "Mark all read" bulk action
+- Send Announcement modal with title, body, type selector, and role multi-checkbox (admin/teacher/student)
+- Success toast shows recipient count after announcement
+- OperationsRoutes wired to NotificationsPage (replaced Soon placeholder)
 
 ### Pending
-- Notifications page with full notification list
-- Send Announcement form
-- Mark all as read functionality
+- Nothing.
 
 ### Known bugs
 - None.

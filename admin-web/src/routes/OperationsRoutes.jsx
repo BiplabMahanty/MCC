@@ -5,6 +5,7 @@ import FeePlanDetailPage from '../pages/fees/FeePlanDetailPage';
 import StudentFeePage from '../pages/fees/StudentFeePage';
 import SchedulePage from '../pages/schedule/SchedulePage';
 import AttendancePage from '../pages/attendance/AttendancePage';
+import NotificationsPage from '../pages/notifications/NotificationsPage';
 
 export default function OperationsRoutes() {
   return (
@@ -14,7 +15,7 @@ export default function OperationsRoutes() {
       <Route path="/fees/:id" element={<FeePlanDetailPage />} />
       <Route path="/schedule" element={<SchedulePage />} />
       <Route path="/attendance" element={<AttendancePage />} />
-      <Route path="/notifications" element={<Soon name="Notifications" />} />
+      <Route path="/notifications" element={<NotificationsPage />} />
       <Route path="/reports" element={<Soon name="Reports" />} />
     </>
   );
