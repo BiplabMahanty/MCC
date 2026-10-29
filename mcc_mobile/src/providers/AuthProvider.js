@@ -20,6 +20,12 @@ import {
 
 export const AuthContext = createContext(null);
 
+const STARTUP_SCREEN_MINIMUM_MS = 2000;
+
+function wait(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 export default function AuthProvider({ children }) {
   const queryClient = useQueryClient();
   const [accessToken, setAccessToken] = useState(null);
@@ -68,7 +74,14 @@ export default function AuthProvider({ children }) {
     let active = true;
 
     async function initializeSession() {
+      const startedAt = Date.now();
       await refreshSession();
+
+      const remainingTime = Math.max(
+        0,
+        STARTUP_SCREEN_MINIMUM_MS - (Date.now() - startedAt),
+      );
+      await wait(remainingTime);
 
       if (active) {
         setInitializing(false);
