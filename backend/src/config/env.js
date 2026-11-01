@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
+const path = require('node:path');
 
-dotenv.config({ quiet: true });
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), quiet: true });
 
 function positiveInteger(name, fallback) {
   const value = Number(process.env[name] || fallback);
