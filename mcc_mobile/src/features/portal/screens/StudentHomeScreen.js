@@ -39,12 +39,17 @@ function isPastDue(dateStr) {
 }
 
 // ── Compact stat chip ────────────────────────────────────────────────────────
-function StatChip({ icon, label, value, iconBg, onPress }) {
+function StatChip({ label, value, iconBg, onPress }) {
   return (
-    <Pressable style={({ pressed }) => [styles.chip, pressed && { opacity: 0.7 }]} onPress={onPress}>
-      <View style={[styles.chipIcon, { backgroundColor: iconBg }]}>
-        <Text style={styles.chipIconText}>{icon}</Text>
-      </View>
+    <Pressable
+      style={({ pressed, hovered }) => [
+        styles.chip,
+        { borderTopColor: iconBg },
+        hovered && styles.cardHovered,
+        pressed && styles.cardPressed,
+      ]}
+      onPress={onPress}
+    >
       <Text style={styles.chipValue} numberOfLines={1}>{value ?? ' '}</Text>
       <Text style={styles.chipLabel} numberOfLines={1}>{label}</Text>
     </Pressable>
@@ -89,9 +94,10 @@ function MaterialCard({ item }) {
   const icon = mime.includes('pdf') ? '📄' : mime.includes('image') ? '🖼️' : mime.includes('video') ? '🎬' : '📁';
   return (
     <Pressable
-      style={({ pressed }) => [styles.matCard, pressed && { opacity: 0.7 }]}
+      style={({ pressed, hovered }) => [styles.matCard, hovered && styles.cardHovered, pressed && styles.cardPressed]}
       onPress={() => item.file?.url && Linking.openURL(item.file.url)}
     >
+      <Text style={styles.matType}>{mime.includes('pdf') ? 'PDF' : mime.includes('image') ? 'IMAGE' : mime.includes('video') ? 'VIDEO' : 'FILE'}</Text>
       <View style={[styles.matIconCircle, { backgroundColor: colors.iconBgBlue }]}>
         <Text style={{ fontSize: 20 }}>{icon}</Text>
       </View>
@@ -105,10 +111,9 @@ function MaterialCard({ item }) {
 }
 
 // ── Quick action button ──────────────────────────────────────────────────────
-function QuickAction({ icon, label, onPress }) {
+function QuickAction({ label, onPress }) {
   return (
-    <Pressable style={({ pressed }) => [styles.qaCard, pressed && { opacity: 0.7 }]} onPress={onPress}>
-      <Text style={styles.qaIcon}>{icon}</Text>
+    <Pressable style={({ pressed, hovered }) => [styles.qaCard, hovered && styles.cardHovered, pressed && styles.cardPressed]} onPress={onPress}>
       <Text style={styles.qaLabel}>{label}</Text>
     </Pressable>
   );
@@ -127,10 +132,9 @@ function Dots({ count, active }) {
 }
 
 // ── Section header ───────────────────────────────────────────────────────────
-function SectionHeader({ icon, title, onViewAll }) {
+function SectionHeader({ title, onViewAll }) {
   return (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionIcon}>{icon}</Text>
       <Text style={styles.sectionTitle}>{title}</Text>
       {onViewAll && (
         <Pressable onPress={onViewAll}>
@@ -240,12 +244,21 @@ export default function StudentHomeScreen({ navigation }) {
                 <Text style={styles.brandSub}>Student Portal</Text>
               </View>
             </View>
-            <View style={styles.headerRight}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open profile menu"
+              onPress={() => setSidebarVisible(true)}
+              style={({ pressed, hovered }) => [
+                styles.headerRight,
+                hovered && styles.profileButtonHovered,
+                pressed && styles.profileButtonPressed,
+              ]}
+            >
               <View style={styles.avatarCircle}>
                 <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
               </View>
               <Text style={styles.nameLabel}>{user?.name?.split(' ')[0] ?? 'Student'} ▾</Text>
-            </View>
+            </Pressable>
           </View>
           <Text style={styles.greeting}>{getGreeting()}, {user?.name?.split(' ')[0] ?? 'Student'} 👋</Text>
           <Text style={styles.greetingSub}>Here's your learning overview today.</Text>
@@ -345,11 +358,11 @@ export default function StudentHomeScreen({ navigation }) {
         <View style={styles.section}>
           <SectionHeader icon="⚡" title="Quick Actions" />
           <View style={styles.qaRow}>
-            <QuickAction icon="👤" label="Profile" onPress={() => navigation.navigate('StudentProfile')} />
+            <QuickAction label="My Batch" onPress={() => navigation.navigate('StudentBatch')} />
+            <QuickAction label="Subjects" onPress={() => navigation.navigate('StudentSubjects')} />
             <QuickAction icon="📊" label="Results" onPress={() => navigation.navigate('StudentResults')} />
             <QuickAction icon="📅" label="Schedule" onPress={() => navigation.navigate('StudentSchedule')} />
             <QuickAction icon="📋" label="Attendance" onPress={() => navigation.navigate('StudentAttendance')} />
-            <QuickAction icon="🚪" label="Sign Out" onPress={logout} />
           </View>
         </View>
       </ScrollView>
@@ -377,6 +390,8 @@ const styles = StyleSheet.create({
   brandName: { color: '#fff', fontSize: 16, fontWeight: '800' },
   brandSub: { color: 'rgba(255,255,255,0.75)', fontSize: 11 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  profileButtonHovered: { backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 22 },
+  profileButtonPressed: { backgroundColor: 'rgba(255,255,255,0.24)', transform: [{ scale: 0.97 }] },
   avatarCircle: {
     width: 34, height: 34, borderRadius: 17,
     backgroundColor: colors.dashGreenAccent,
@@ -403,6 +418,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.dashBorder,
+    borderTopWidth: 3,
     padding: 10,
     width: 110,
     alignItems: 'center',
@@ -413,8 +429,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 4,
   },
-  chipIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  chipIconText: { fontSize: 16 },
   chipValue: { fontSize: 13, fontWeight: '900', color: colors.dashText, textAlign: 'center' },
   chipLabel: { fontSize: 10, color: colors.dashSubText, fontWeight: '500', textAlign: 'center' },
 
@@ -454,7 +468,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   slideCardTop: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  slideIconCircle: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  slideIconCircle: { display: 'none' },
   slideCardMeta: { flex: 1, gap: 2 },
   slideCardTitle: { fontSize: 14, fontWeight: '800', color: colors.dashText },
   slideCardDesc: { fontSize: 12, color: colors.dashSubText },
@@ -484,7 +498,8 @@ const styles = StyleSheet.create({
     width: 130,
     gap: 6,
   },
-  matIconCircle: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  matIconCircle: { display: 'none' },
+  matType: { color: colors.dashGreenAccent, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
   matTitle: { fontSize: 12, fontWeight: '800', color: colors.dashText },
   matDesc: { fontSize: 11, color: colors.dashSubText },
   matOpen: { fontSize: 11, fontWeight: '700', color: colors.dashGreenAccent, marginTop: 'auto' },
@@ -498,7 +513,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  batchIconCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  batchIconCircle: { display: 'none' },
   batchInfo: { flex: 1, gap: 2 },
   batchName: { fontSize: 14, fontWeight: '800', color: colors.dashText },
   batchCode: { fontSize: 12, color: colors.dashSubText },
@@ -522,6 +537,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.dashBorder,
   },
-  qaIcon: { fontSize: 22 },
   qaLabel: { fontSize: 11, fontWeight: '700', color: colors.dashText },
+  cardHovered: { borderColor: colors.dashGreenAccent, backgroundColor: colors.dashGreenLight },
+  cardPressed: { opacity: 0.78, transform: [{ scale: 0.985 }] },
 });

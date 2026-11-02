@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.985 }],
   },
   menuIcon: {
+    display: 'none',
     width: 24,
     color: colors.dashSubText,
     fontSize: 22,
@@ -248,6 +249,7 @@ const styles = StyleSheet.create({
   logoutItem: { marginBottom: 8 },
   logoutHovered: { backgroundColor: '#FEF2F2' },
   logoutIcon: {
+    display: 'none',
     width: 24,
     color: '#DC2626',
     fontSize: 22,
