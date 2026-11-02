@@ -6,6 +6,7 @@ const asyncHandler = require('../../utils/asyncHandler');
 const { idParamsSchema } = require('../../validators/admin/common.validators');
 const {
   questionCreateSchema,
+  questionBulkCreateSchema,
   questionListQuerySchema,
   questionUpdateSchema,
 } = require('../../validators/questions.validators');
@@ -21,6 +22,13 @@ router
   .post(
     validate(questionCreateSchema),
     asyncHandler(questionsController.create),
+  );
+
+router
+  .route('/bulk')
+  .post(
+    validate(questionBulkCreateSchema),
+    asyncHandler(questionsController.createBulk),
   );
 
 router

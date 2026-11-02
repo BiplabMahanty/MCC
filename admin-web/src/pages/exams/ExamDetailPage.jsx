@@ -80,8 +80,8 @@ function ResultsTab({ examId }) {
     },
     { header: 'Score', accessorKey: 'obtainedMarks', cell: (v, row) => `${v ?? 0} / ${row.totalMarks ?? '—'}` },
     { header: '%', accessorKey: 'percentage', cell: (v) => v != null ? `${v.toFixed(1)}%` : '—' },
-    { header: 'Correct', accessorKey: 'correctAnswers' },
-    { header: 'Wrong', accessorKey: 'wrongAnswers' },
+    { header: 'Correct', accessorKey: 'correct' },
+    { header: 'Wrong', accessorKey: 'wrong' },
     { header: 'Unanswered', accessorKey: 'unanswered' },
     {
       header: 'Status',

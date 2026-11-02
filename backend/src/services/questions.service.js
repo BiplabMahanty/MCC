@@ -172,6 +172,26 @@ async function create(instituteId, userId, input) {
   return question.toJSON();
 }
 
+async function createBulk(instituteId, userId, questions) {
+  await Promise.all(
+    questions.map((q) => validateSubject(instituteId, q.subjectId)),
+  );
+  await Promise.all(
+    questions.map((q) => validateImages(instituteId, q)),
+  );
+
+  const docs = questions.map((q) => ({
+    ...ownedInput(q),
+    instituteId,
+    createdBy: userId,
+    updatedBy: userId,
+  }));
+
+  const created = await Question.insertMany(docs);
+  await Question.populate(created, { path: 'subjectId', select: 'name code' });
+  return created.map((q) => q.toJSON());
+}
+
 async function update(instituteId, userId, id, input) {
   const question = await Question.findOne({
     _id: id,
@@ -259,6 +279,7 @@ async function getForTeacher(instituteId, teacherId, id) {
 
 module.exports = {
   create,
+  createBulk,
   getById,
   getForTeacher,
   list,

@@ -116,6 +116,15 @@ const questionListQuerySchema = z
   })
   .strict();
 
+const questionBulkCreateSchema = z
+  .object({
+    questions: z
+      .array(questionCreateSchema)
+      .min(1)
+      .max(100),
+  })
+  .strict();
+
 const uploadRequestSchema = z
   .object({
     fileName: z.string().trim().min(1).max(255),
@@ -143,6 +152,7 @@ const profileUploadRequestSchema = z
 
 module.exports = {
   questionCreateSchema,
+  questionBulkCreateSchema,
   questionListQuerySchema,
   questionUpdateSchema,
   uploadRequestSchema,

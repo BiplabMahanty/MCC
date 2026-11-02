@@ -1,9 +1,11 @@
 import { ScrollView, StyleSheet, Text, View, Pressable, Dimensions, RefreshControl } from 'react-native';
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import useAuth from '../../../hooks/useAuth';
 import { useAdminDashboardHome } from '../hooks/useAdminDashboard';
+import AdminSidebar from '../components/AdminSidebar';
 import colors from '../../../theme/colors';
 
 const { width: SW } = Dimensions.get('window');
@@ -99,7 +101,8 @@ function ClassRow({ item }) {
 }
 
 export default function AdminHomeScreen({ navigation }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [sidebarVisible, setSidebarVisible] = useState(false);
   const { data, isFetching, error, refetch } = useAdminDashboardHome();
   const home = data?.data;
   const stats = home?.stats;
@@ -114,10 +117,27 @@ export default function AdminHomeScreen({ navigation }) {
     <View style={styles.root}>
       <StatusBar style="light" translucent backgroundColor="transparent" />
 
+      <AdminSidebar
+        visible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+        onLogout={logout}
+        navigation={navigation}
+        user={user}
+        currentRoute="AdminHome"
+        currentTab="TabDashboard"
+      />
+
       {/* ── HEADER ── */}
       <View style={styles.header}>
         <SafeAreaView edges={['top']} style={styles.headerSafe}>
           <View style={styles.headerTop}>
+            <Pressable
+              accessibilityLabel="Open admin navigation menu"
+              onPress={() => setSidebarVisible(true)}
+              style={({ pressed, hovered }) => [styles.menuButton, hovered && styles.menuButtonHovered, pressed && styles.menuButtonPressed]}
+            >
+              <Text style={styles.menuIcon}>☰</Text>
+            </Pressable>
             <View style={styles.headerBrand}>
               <View style={styles.brandIconCircle} />
               <View>
@@ -174,7 +194,7 @@ export default function AdminHomeScreen({ navigation }) {
           {/* Fee Collection */}
           <View style={styles.feeSection}>
             <View style={styles.feeSectionHeader}>
-              <Text style={styles.feeSectionIcon}>💳</Text>
+            
               <Text style={styles.feeSectionTitle}>Fee Collection</Text>
               <View style={styles.monthPill}>
                 <Text style={styles.monthText}>📅 {currentMonth}</Text>
@@ -258,6 +278,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
     gap: 10,
   },
+  menuButton: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  menuButtonHovered: { backgroundColor: 'rgba(255,255,255,0.14)' },
+  menuButtonPressed: { backgroundColor: 'rgba(255,255,255,0.24)', transform: [{ scale: 0.95 }] },
+  menuIcon: { fontSize: 21, color: '#fff' },
   headerBrand: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   brandIconCircle: {
     width: 44,
@@ -360,7 +384,7 @@ const styles = StyleSheet.create({
   },
   feeSectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
   feeSectionIcon: { fontSize: 16 },
-  feeSectionTitle: { fontSize: 13, fontWeight: '800', color: colors.dashText, flex: 1 },
+  feeSectionTitle: { fontSize: 10, fontWeight: '800', color: colors.dashText, flex: 1 },
   monthPill: {
     backgroundColor: colors.dashBg,
     borderRadius: 8,

@@ -9,7 +9,7 @@ function generateEmail(name, phone) {
     .replace(/\s+/g, '.')
     .replace(/[^a-z0-9.]/g, '');
   const phonePart = String(phone).replace(/\D/g, '').slice(-4);
-  return `${namePart}.${phonePart}@import.local`;
+  return `${namePart}.${phonePart}@mahapatra.com`;
 }
 
 async function importStudents(instituteId, rows) {

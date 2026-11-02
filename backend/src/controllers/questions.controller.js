@@ -22,6 +22,15 @@ async function create(req, res) {
   res.status(201).json({ data });
 }
 
+async function createBulk(req, res) {
+  const data = await questionsService.createBulk(
+    req.user.instituteId,
+    req.user._id,
+    req.body.questions,
+  );
+  res.status(201).json({ data, count: data.length });
+}
+
 async function update(req, res) {
   const data = await questionsService.update(
     req.user.instituteId,
@@ -61,6 +70,7 @@ async function getTeacher(req, res) {
 
 module.exports = {
   create,
+  createBulk,
   getAdmin,
   getTeacher,
   listAdmin,

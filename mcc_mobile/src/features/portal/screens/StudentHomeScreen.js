@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import useAuth from '../../../hooks/useAuth';
 import { apiRequest } from '../../../services/apiClient';
 import colors from '../../../theme/colors';
+import StudentSidebar from '../components/StudentSidebar';
 
 const { width: SW } = Dimensions.get('window');
 const SLIDER_W = SW - 32;
@@ -44,7 +45,7 @@ function StatChip({ icon, label, value, iconBg, onPress }) {
       <View style={[styles.chipIcon, { backgroundColor: iconBg }]}>
         <Text style={styles.chipIconText}>{icon}</Text>
       </View>
-      <Text style={styles.chipValue} numberOfLines={1}>{value ?? '—'}</Text>
+      <Text style={styles.chipValue} numberOfLines={1}>{value ?? ' '}</Text>
       <Text style={styles.chipLabel} numberOfLines={1}>{label}</Text>
     </Pressable>
   );
@@ -142,6 +143,7 @@ function SectionHeader({ icon, title, onViewAll }) {
 
 export default function StudentHomeScreen({ navigation }) {
   const { user, logout } = useAuth();
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   const dashQuery = useQuery({
     queryKey: ['portal', 'student', 'dashboard'],
@@ -189,7 +191,7 @@ export default function StudentHomeScreen({ navigation }) {
     },
     {
       key: 'teachers',
-      icon: '👨🏫',
+      icon: '👨',
       label: 'Teachers',
       value: dash?.teachers ?? 0,
       iconBg: colors.iconBgBlue,
@@ -209,15 +211,30 @@ export default function StudentHomeScreen({ navigation }) {
     <View style={styles.root}>
       <StatusBar style="light" translucent backgroundColor="transparent" />
 
+      <StudentSidebar
+        visible={sidebarVisible}
+        onClose={() => setSidebarVisible(false)}
+        onLogout={logout}
+        navigation={navigation}
+        user={user}
+        currentRoute="StudentHome"
+      />
+
       {/* ── HEADER ── */}
       <View style={styles.header}>
         <SafeAreaView edges={['top']} style={styles.headerSafe}>
           <View style={styles.headerTop}>
-            <Text style={styles.menuIcon}>☰</Text>
+            <Pressable
+              accessibilityLabel="Open navigation menu"
+              onPress={() => setSidebarVisible(true)}
+              style={({ pressed, hovered }) => [styles.menuButton, hovered && styles.menuButtonHovered, pressed && styles.menuButtonPressed]}
+            >
+              <Text style={styles.menuIcon}>☰</Text>
+            </Pressable>
             <View style={styles.headerBrand}>
-              <View style={styles.brandIconCircle}>
+              {/* <View style={styles.brandIconCircle}>
                 <Text style={{ fontSize: 22 }}>🎓</Text>
-              </View>
+              </View> */}
               <View>
                 <Text style={styles.brandName} numberOfLines={1}>{user?.instituteName ?? 'Coaching'}</Text>
                 <Text style={styles.brandSub}>Student Portal</Text>
@@ -347,7 +364,10 @@ const styles = StyleSheet.create({
   header: { backgroundColor: colors.dashGreen, paddingBottom: 20 },
   headerSafe: { paddingHorizontal: 18 },
   headerTop: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 10 },
-  menuIcon: { fontSize: 20, color: '#fff', marginRight: 2 },
+  menuButton: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
+  menuButtonHovered: { backgroundColor: 'rgba(255,255,255,0.14)' },
+  menuButtonPressed: { backgroundColor: 'rgba(255,255,255,0.24)', transform: [{ scale: 0.95 }] },
+  menuIcon: { fontSize: 21, color: '#fff' },
   headerBrand: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   brandIconCircle: {
     width: 44, height: 44, borderRadius: 22,
