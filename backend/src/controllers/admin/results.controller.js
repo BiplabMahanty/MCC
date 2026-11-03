@@ -25,12 +25,12 @@ const listResults = [
 const publishResults = [
   validate(idParamsSchema, 'params'),
   asyncHandler(async (req, res) => {
-    const data = await resultService.publishResults(
+    const result = await resultService.publishResults(
       req.params.id,
       req.user.instituteId,
       req.user._id,
     );
-    res.json({ data });
+    res.json({ data: result });
   }),
 ];
 
@@ -38,7 +38,7 @@ const unpublishResults = [
   validate(idParamsSchema, 'params'),
   asyncHandler(async (req, res) => {
     await resultService.unpublishResults(req.params.id, req.user.instituteId);
-    res.status(204).end();
+    res.json({ success: true });
   }),
 ];
 

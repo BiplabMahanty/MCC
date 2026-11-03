@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   listExams, getExam, createExam, updateExam, deleteExam,
-  publishExam, unpublishExam, listExamResults, publishResults, unpublishResults,
+  publishExam, unpublishExam, duplicateExam, listExamResults, publishResults, unpublishResults,
 } from '../api/exams';
 
 export function useExams(params) {
@@ -66,6 +66,14 @@ export function useUnpublishExam() {
       qc.invalidateQueries({ queryKey: ['exams'] });
       qc.invalidateQueries({ queryKey: ['exam', id] });
     },
+  });
+}
+
+export function useDuplicateExam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }) => duplicateExam(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['exams'] }),
   });
 }
 

@@ -52,4 +52,22 @@ const examListQuerySchema = z
   })
   .strict();
 
-module.exports = { examCreateSchema, examListQuerySchema, examUpdateSchema };
+const examDuplicateSchema = z
+  .object({
+    name: z.string().trim().min(2).max(200),
+    startTime: isoDatetime,
+    endTime: isoDatetime,
+    durationMinutes: z.number().int().min(1).max(600).optional(),
+    totalMarks: z.number().min(1).optional(),
+    marksPerQuestion: z.number().min(0.5).optional(),
+    negativeMarking: z.boolean().optional(),
+    negativeMarks: z.number().min(0).optional(),
+    instructions: z.string().trim().max(3000).optional(),
+  })
+  .strict()
+  .refine((d) => new Date(d.endTime) > new Date(d.startTime), {
+    message: 'endTime must be after startTime.',
+    path: ['endTime'],
+  });
+
+module.exports = { examCreateSchema, examListQuerySchema, examUpdateSchema, examDuplicateSchema };

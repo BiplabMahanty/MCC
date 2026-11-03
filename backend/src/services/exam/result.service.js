@@ -54,7 +54,7 @@ async function listExamResults(examId, instituteId, query) {
   const { skip } = paginationWindow(page, limit);
   const filter = { examId, instituteId };
 
-  const [results, total] = await Promise.all([
+  const [results, total, publishedCount] = await Promise.all([
     Result.find(filter)
       .populate({ path: 'studentId', select: 'name email studentProfile' })
       .sort({ rank: 1 })
@@ -62,9 +62,14 @@ async function listExamResults(examId, instituteId, query) {
       .limit(limit)
       .lean(),
     Result.countDocuments(filter),
+    Result.countDocuments({ ...filter, isPublished: true }),
   ]);
 
-  return { data: results, pagination: paginationMeta(page, limit, total) };
+  return {
+    data: results,
+    pagination: paginationMeta(page, limit, total),
+    meta: { resultsPublished: publishedCount > 0 },
+  };
 }
 
 async function publishResults(examId, instituteId, adminId) {

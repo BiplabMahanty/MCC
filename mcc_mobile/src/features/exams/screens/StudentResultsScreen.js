@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import EmptyState from '../../../components/common/EmptyState';
 import ErrorState from '../../../components/common/ErrorState';
@@ -57,7 +57,7 @@ export default function StudentResultsScreen({ navigation }) {
       <View style={styles.body}>
         {isPending ? <Loader message="Loading results…" /> : null}
         {error ? <ErrorState message={error.message} onRetry={refetch} retrying={isFetching} /> : null}
-        {data ? (
+{data ? (
           <FlatList
             data={data.pages.flatMap((p) => p.data)}
             keyExtractor={(r) => r._id}
@@ -66,6 +66,7 @@ export default function StudentResultsScreen({ navigation }) {
             onEndReached={() => hasNextPage && fetchNextPage()}
             onEndReachedThreshold={0.3}
             showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} />}
             renderItem={({ item }) => (
               <ResultCard
                 result={item}

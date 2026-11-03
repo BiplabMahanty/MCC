@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Eye, Send, Undo2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, Send, Undo2, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useExams, useDeleteExam, usePublishExam, useUnpublishExam } from '../../hooks/useExams';
+import { useExams, useDeleteExam, usePublishExam, useUnpublishExam, useDuplicateExam } from '../../hooks/useExams';
 import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -10,6 +10,7 @@ import Table from '../../components/ui/Table';
 import Pagination from '../../components/ui/Pagination';
 import Modal from '../../components/ui/Modal';
 import ErrorState from '../../components/ui/ErrorState';
+import ExamReplicaModal from '../../components/modals/ExamReplicaModal';
 import client from '../../api/client';
 
 const STATUS_COLORS = { draft: 'draft', published: 'published', cancelled: 'error' };
@@ -54,10 +55,12 @@ export default function ExamListPage() {
   const [deleting, setDeleting] = useState(null);
   const [publishing, setPublishing] = useState(null);
   const [unpublishing, setUnpublishing] = useState(null);
+  const [replicating, setReplicating] = useState(null);
 
   const deleteExam = useDeleteExam();
   const publishExam = usePublishExam();
   const unpublishExam = useUnpublishExam();
+  const duplicateExam = useDuplicateExam();
   const { data: batches = [] } = useBatchOptions();
   const { data: subjects = [] } = useSubjectOptions();
 
@@ -102,6 +105,16 @@ export default function ExamListPage() {
     }
   };
 
+  const confirmDuplicate = async (payload) => {
+    try {
+      await duplicateExam.mutateAsync({ id: replicating._id, data: payload });
+      toast.success('Exam duplicated successfully.');
+      setReplicating(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message ?? 'Duplication failed.');
+    }
+  };
+
   const columns = [
     {
       header: 'Exam',
@@ -136,6 +149,9 @@ export default function ExamListPage() {
               <Pencil size={14} />
             </button>
           )}
+          <button onClick={() => setReplicating(row)} className="p-1.5 rounded-lg text-text-muted hover:bg-surface hover:text-brand transition-colors" title="Replica">
+            <Copy size={14} />
+          </button>
           {row.status === 'draft' && (
             <button onClick={() => setPublishing(row)} className="p-1.5 rounded-lg text-text-muted hover:bg-surface hover:text-success transition-colors" title="Publish">
               <Send size={14} />
@@ -201,6 +217,8 @@ export default function ExamListPage() {
       <Modal open={!!unpublishing} onClose={() => setUnpublishing(null)} title="Unpublish Exam" confirm confirmLabel="Unpublish" confirmVariant="danger" onConfirm={confirmUnpublish} loading={unpublishExam.isPending}>
         <p className="text-sm text-text-muted">Unpublish <strong className="text-text-primary">{unpublishing?.name}</strong>? The question snapshot will be cleared and the exam returns to draft.</p>
       </Modal>
+
+      <ExamReplicaModal open={!!replicating} exam={replicating} onClose={() => setReplicating(null)} onSubmit={confirmDuplicate} loading={duplicateExam.isPending} />
     </div>
   );
 }

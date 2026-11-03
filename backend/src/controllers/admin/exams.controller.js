@@ -5,6 +5,7 @@ const {
   examCreateSchema,
   examListQuerySchema,
   examUpdateSchema,
+  examDuplicateSchema,
 } = require('../../validators/exam.validators');
 const { idParamsSchema } = require('../../validators/admin/common.validators');
 
@@ -77,6 +78,20 @@ const unpublish = [
   }),
 ];
 
+const duplicate = [
+  validate(idParamsSchema, 'params'),
+  validate(examDuplicateSchema),
+  asyncHandler(async (req, res) => {
+    const data = await examsService.duplicate(
+      req.user.instituteId,
+      req.user._id,
+      req.params.id,
+      req.body,
+    );
+    res.status(201).json({ data });
+  }),
+];
+
 const remove = [
   validate(idParamsSchema, 'params'),
   asyncHandler(async (req, res) => {
@@ -89,4 +104,4 @@ const remove = [
   }),
 ];
 
-module.exports = { create, getById, list, publish, remove, unpublish, update };
+module.exports = { create, duplicate, getById, list, publish, remove, unpublish, update };

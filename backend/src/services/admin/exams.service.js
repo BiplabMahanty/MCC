@@ -234,4 +234,34 @@ async function remove(instituteId, userId, id) {
   await exam.save();
 }
 
-module.exports = { create, getById, list, publish, remove, unpublish, update };
+async function duplicate(instituteId, userId, id, input) {
+  const originalExam = await Exam.findOne({ _id: id, instituteId, isDeleted: false });
+  if (!originalExam) throw new AppError('Exam not found.', 404, 'NOT_FOUND');
+
+  const newExam = await Exam.create({
+    name: input.name,
+    examType: originalExam.examType,
+    academicSession: originalExam.academicSession,
+    batchId: originalExam.batchId,
+    subjectId: originalExam.subjectId,
+    teacherIds: originalExam.teacherIds,
+    questionIds: originalExam.questionIds,
+    durationMinutes: input.durationMinutes ?? originalExam.durationMinutes,
+    startTime: input.startTime,
+    endTime: input.endTime,
+    totalMarks: input.totalMarks ?? originalExam.totalMarks,
+    marksPerQuestion: input.marksPerQuestion ?? originalExam.marksPerQuestion,
+    negativeMarking: input.negativeMarking ?? originalExam.negativeMarking,
+    negativeMarks: input.negativeMarks ?? originalExam.negativeMarks,
+    instructions: input.instructions ?? originalExam.instructions,
+    status: 'draft',
+    instituteId,
+    createdBy: userId,
+    updatedBy: userId,
+  });
+
+  await newExam.populate(populateRefs);
+  return safeExam(newExam);
+}
+
+module.exports = { create, duplicate, getById, list, publish, remove, unpublish, update };

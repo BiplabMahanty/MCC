@@ -15,10 +15,12 @@ import EntityListScreen from '../features/admin/screens/EntityListScreen';
 import PortalCollectionScreen from '../features/portal/screens/PortalCollectionScreen';
 import PortalHomeScreen from '../features/portal/screens/PortalHomeScreen';
 import StudentHomeScreen from '../features/portal/screens/StudentHomeScreen';
+import TeacherHomeScreen from '../features/portal/screens/TeacherHomeScreen';
 import PortalProfileScreen from '../features/portal/screens/PortalProfileScreen';
 import StudentProfileScreen from '../features/portal/screens/StudentProfileScreen';
 import StudentBatchScreen from '../features/portal/screens/StudentBatchScreen';
 import StudentAttendanceScreen from '../features/portal/screens/StudentAttendanceScreen';
+import { TeacherAssignmentsScreen, TeacherAssignmentFormScreen, TeacherAssignmentDetailScreen, TeacherMaterialsScreen } from '../features/portal/screens/TeacherContentScreen';
 import QuestionBankScreen from '../features/questions/screens/QuestionBankScreen';
 import QuestionFormScreen from '../features/questions/screens/QuestionFormScreen';
 import QuestionPreviewScreen from '../features/questions/screens/QuestionPreviewScreen';
@@ -177,7 +179,7 @@ function AdminTabNavigator() {
         component={TeachersStack}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon emoji="👨‍🏫" label="Teachers" focused={focused} />
+            <TabIcon emoji="👨🏫" label="Teachers" focused={focused} />
           ),
         }}
       />
@@ -223,11 +225,15 @@ export default function RootNavigator() {
   if (user.role === roles.teacher) {
     return (
       <Stack.Navigator key={user.role} screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="TeacherHome" component={PortalHomeScreen} initialParams={{ role: 'teacher' }} />
+        <Stack.Screen name="TeacherHome" component={TeacherHomeScreen} />
         <Stack.Screen name="TeacherProfile" component={PortalProfileScreen} initialParams={{ role: 'teacher' }} />
         <Stack.Screen name="TeacherBatches" component={PortalCollectionScreen} initialParams={{ role: 'teacher', resource: 'batches', title: 'Assigned batches' }} />
         <Stack.Screen name="TeacherSubjects" component={PortalCollectionScreen} initialParams={{ role: 'teacher', resource: 'subjects', title: 'Assigned subjects' }} />
         <Stack.Screen name="TeacherStudents" component={PortalCollectionScreen} initialParams={{ role: 'teacher', resource: 'students', title: 'Students' }} />
+        <Stack.Screen name="TeacherAssignments" component={TeacherAssignmentsScreen} />
+        <Stack.Screen name="TeacherAssignmentForm" component={TeacherAssignmentFormScreen} />
+        <Stack.Screen name="TeacherAssignmentDetail" component={TeacherAssignmentDetailScreen} />
+        <Stack.Screen name="TeacherMaterials" component={TeacherMaterialsScreen} />
         <Stack.Screen name="TeacherQuestionBank" component={QuestionBankScreen} initialParams={{ role: 'teacher' }} />
         <Stack.Screen name="QuestionPreview" component={QuestionPreviewScreen} />
         <Stack.Screen name="TeacherExamList" component={ExamListScreen} initialParams={{ role: 'teacher' }} />

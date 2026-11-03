@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Image,
   StyleSheet,
   Text,
   View,
@@ -61,9 +62,10 @@ export default function SplashScreen() {
           <Text style={styles.bookEmoji}>📚</Text>
           <View style={styles.studySpark} />
         </Animated.View>
-        <View style={styles.mark}>
-          <Text style={styles.markText}>CSM</Text>
-        </View>
+        <Image
+          source={require('../../../../assets/mahapatraCoaching.jpeg')}
+          style={styles.logo}
+        />
         <Text style={styles.title}>{env.instituteName}</Text>
         <Text style={styles.subtitle}>Restoring your secure session…</Text>
         <ActivityIndicator color={colors.primary} size="small" />
@@ -79,14 +81,11 @@ const styles = StyleSheet.create({
     gap: 12,
     justifyContent: 'center',
   },
-  mark: {
-    alignItems: 'center',
-    backgroundColor: colors.black,
-    borderRadius: 22,
+  logo: {
     height: 76,
-    justifyContent: 'center',
-    marginBottom: 8,
     width: 76,
+    marginBottom: 8,
+    borderRadius: 12,
   },
   studyAnimation: {
     alignItems: 'center',
@@ -107,11 +106,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 42,
   },
-  markText: {
-    color: colors.primary,
-    fontSize: 23,
-    fontWeight: '900',
-  },
+
   title: {
     color: colors.black,
     fontSize: 22,

@@ -7,6 +7,7 @@ import {
 import {
   createExam,
   deleteExam,
+  duplicateExam,
   getExam,
   getExamAnalytics,
   getExamMonitor,
@@ -80,6 +81,14 @@ export function useUnpublishExam() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: unpublishExam,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['exams'] }),
+  });
+}
+
+export function useDuplicateExam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }) => duplicateExam(id, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['exams'] }),
   });
 }

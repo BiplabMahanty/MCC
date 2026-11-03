@@ -3,13 +3,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import colors from '../../theme/colors';
 
-export default function Screen({ children }) {
+export default function Screen({ children, fullBleed = false }) {
   return (
     <SafeAreaView
       edges={['top', 'right', 'bottom', 'left']}
       style={styles.safeArea}
     >
-      <View style={styles.content}>{children}</View>
+      <View style={[styles.content, fullBleed && styles.contentFullBleed]}>
+        {children}
+      </View>
     </SafeAreaView>
   );
 }
@@ -23,5 +25,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 24,
+  },
+  contentFullBleed: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 });

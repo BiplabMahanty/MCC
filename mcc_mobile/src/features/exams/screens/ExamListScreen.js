@@ -17,7 +17,8 @@ import Screen from '../../../components/common/Screen';
 import colors from '../../../theme/colors';
 import AdminHeader from '../../admin/components/AdminHeader';
 import StudentPageHeader from '../../portal/components/StudentPageHeader';
-import { useDeleteExam, useExams, usePublishExam } from '../hooks/useExams';
+import { useDeleteExam, useExams, usePublishExam, useDuplicateExam } from '../hooks/useExams';
+import ExamReplicaModal from '../components/ExamReplicaModal';
 
 const STATUS_FILTERS = [
   { label: 'All', value: undefined },
@@ -83,8 +84,8 @@ function StudentExamCard({ item, onPress }) {
   );
 }
 
-// ── Admin/Teacher exam card (unchanged) ──────────────────────────────────────
-function AdminExamItem({ item, role, onPress, onPublish, onDelete }) {
+// ── Admin/Teacher exam card ──────────────────────────────────────────────────────
+function AdminExamItem({ item, role, onPress, onPublish, onDelete, onReplica }) {
   const start = item.startTime ? new Date(item.startTime).toLocaleString() : '—';
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.card}>
@@ -99,6 +100,9 @@ function AdminExamItem({ item, role, onPress, onPublish, onDelete }) {
       <Text style={styles.cardMeta}>{item.durationMinutes} min · {item.totalMarks} marks</Text>
       {role === 'admin' && (
         <View style={styles.actions}>
+          <Pressable accessibilityRole="button" onPress={onReplica}>
+            <Text style={styles.actionReplica}>Replica</Text>
+          </Pressable>
           {item.status === 'draft' && (
             <Pressable accessibilityRole="button" onPress={onPublish}>
               <Text style={styles.actionPublish}>Publish</Text>
@@ -124,9 +128,11 @@ export default function ExamListScreen({ navigation, route }) {
   const admin = role === 'admin';
   const isStudent = role === 'student';
   const [status, setStatus] = useState(undefined);
+  const [replicatingExam, setReplicatingExam] = useState(null);
   const query = useExams(role, { status });
   const publishMutation = usePublishExam();
   const deleteMutation = useDeleteExam();
+  const duplicateMutation = useDuplicateExam();
 
   const items = useMemo(
     () => query.data?.pages.flatMap((p) => p.data) ?? [],
@@ -150,6 +156,16 @@ export default function ExamListScreen({ navigation, route }) {
   async function handlePublish(id) {
     try { await publishMutation.mutateAsync(id); }
     catch (e) { Alert.alert('Publish failed', e.message); }
+  }
+
+  async function handleDuplicate(payload) {
+    try {
+      await duplicateMutation.mutateAsync({ id: replicatingExam._id, body: payload });
+      setReplicatingExam(null);
+      Alert.alert('Success', 'Exam duplicated successfully');
+    } catch (e) {
+      Alert.alert('Error', e.message || 'Failed to duplicate exam');
+    }
   }
 
   // ── Student layout ──────────────────────────────────────────────────────
@@ -193,7 +209,7 @@ export default function ExamListScreen({ navigation, route }) {
     );
   }
 
-  // ── Admin / Teacher layout (unchanged) ──────────────────────────────────
+  // ── Admin / Teacher layout ──────────────────────────────────────────────
   if (query.isPending) return <Screen><Loader message="Loading exams…" /></Screen>;
   if (query.error) return <Screen><ErrorState message={query.error.message} onRetry={query.refetch} retrying={query.isFetching} /></Screen>;
 
@@ -250,10 +266,19 @@ export default function ExamListScreen({ navigation, route }) {
               onDelete={() => confirmDelete(item._id)}
               onPress={() => navigation.navigate('ExamDetail', { role, id: item._id })}
               onPublish={() => handlePublish(item._id)}
+              onReplica={() => setReplicatingExam(item)}
             />
           )}
         />
       </View>
+
+      <ExamReplicaModal
+        visible={!!replicatingExam}
+        exam={replicatingExam}
+        onClose={() => setReplicatingExam(null)}
+        onSubmit={handleDuplicate}
+        loading={duplicateMutation.isPending}
+      />
     </Screen>
   );
 }
@@ -289,7 +314,7 @@ const styles = StyleSheet.create({
   sCardFooter: { flexDirection: 'row', gap: 16 },
   sCardFooterText: { fontSize: 12, color: colors.dashSubText },
 
-  // Admin/Teacher layout (original)
+  // Admin/Teacher layout
   container: { flex: 1, gap: 16 },
   filters: { flexDirection: 'row', gap: 8 },
   filter: { backgroundColor: colors.white, borderColor: colors.border, borderRadius: 16, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 7 },
@@ -302,6 +327,7 @@ const styles = StyleSheet.create({
   badge: { fontSize: 11, fontWeight: '900', letterSpacing: 0.5 },
   cardMeta: { color: colors.mutedText, fontSize: 13 },
   actions: { borderTopColor: colors.border, borderTopWidth: 1, flexDirection: 'row', gap: 20, paddingTop: 10, marginTop: 4 },
+  actionReplica: { color: colors.primary, fontSize: 13, fontWeight: '800' },
   actionPublish: { color: colors.primary, fontSize: 13, fontWeight: '800' },
   actionDelete: { color: colors.error, fontSize: 13, fontWeight: '800' },
   footer: { paddingVertical: 20 },

@@ -5,19 +5,18 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "csm",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/mahapatraCoaching.png",
+    "splash": {
+      "image": "./assets/RadiantDiwali_Festival_of_Lights.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F97316"
+    },
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.csm.mobile"
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#F97316",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
       "package": "com.csm.mobile"
     },
     "plugins": [

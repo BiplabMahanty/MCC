@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { useRef, useState } from 'react';
 import {
-  Dimensions,
   Linking,
   Pressable,
   RefreshControl,
@@ -10,6 +9,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -17,9 +17,6 @@ import useAuth from '../../../hooks/useAuth';
 import { apiRequest } from '../../../services/apiClient';
 import colors from '../../../theme/colors';
 import StudentSidebar from '../components/StudentSidebar';
-
-const { width: SW } = Dimensions.get('window');
-const SLIDER_W = SW - 32;
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -31,7 +28,11 @@ function getGreeting() {
 function formatDue(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 function isPastDue(dateStr) {
@@ -42,6 +43,8 @@ function isPastDue(dateStr) {
 function StatChip({ label, value, iconBg, onPress }) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${label}: ${value}`}
       style={({ pressed, hovered }) => [
         styles.chip,
         { borderTopColor: iconBg },
@@ -50,30 +53,62 @@ function StatChip({ label, value, iconBg, onPress }) {
       ]}
       onPress={onPress}
     >
-      <Text style={styles.chipValue} numberOfLines={1}>{value ?? ' '}</Text>
-      <Text style={styles.chipLabel} numberOfLines={1}>{label}</Text>
+      <View style={[styles.chipMarker, { backgroundColor: iconBg }]} />
+      <Text style={styles.chipValue} numberOfLines={1}>
+        {value ?? ' '}
+      </Text>
+      <Text style={styles.chipLabel} numberOfLines={1}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
 // ── Assignment slide card ────────────────────────────────────────────────────
-function AssignmentCard({ item }) {
+function AssignmentCard({ item, width }) {
   const submitted = !!item.submission;
   const overdue = !submitted && isPastDue(item.dueAt);
   return (
-    <View style={[styles.slideCard, { width: SLIDER_W }]}>
+    <View style={[styles.slideCard, { width }]}>
       <View style={styles.slideCardTop}>
-        <View style={[styles.slideIconCircle, { backgroundColor: colors.iconBgOrange }]}>
+        <View
+          style={[
+            styles.slideIconCircle,
+            { backgroundColor: colors.iconBgOrange },
+          ]}
+        >
           <Text style={{ fontSize: 18 }}>📝</Text>
         </View>
         <View style={styles.slideCardMeta}>
-          <Text style={styles.slideCardTitle} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.slideCardTitle} numberOfLines={2}>
+            {item.title}
+          </Text>
           {item.description ? (
-            <Text style={styles.slideCardDesc} numberOfLines={1}>{item.description}</Text>
+            <Text style={styles.slideCardDesc} numberOfLines={1}>
+              {item.description}
+            </Text>
           ) : null}
         </View>
-        <View style={[styles.statusBadge, submitted ? styles.badgeDone : overdue ? styles.badgeOverdue : styles.badgePending]}>
-          <Text style={[styles.statusText, submitted ? styles.statusDone : overdue ? styles.statusOverdue : styles.statusPending]}>
+        <View
+          style={[
+            styles.statusBadge,
+            submitted
+              ? styles.badgeDone
+              : overdue
+                ? styles.badgeOverdue
+                : styles.badgePending,
+          ]}
+        >
+          <Text
+            style={[
+              styles.statusText,
+              submitted
+                ? styles.statusDone
+                : overdue
+                  ? styles.statusOverdue
+                  : styles.statusPending,
+            ]}
+          >
             {submitted ? 'Submitted' : overdue ? 'Overdue' : 'Pending'}
           </Text>
         </View>
@@ -81,7 +116,10 @@ function AssignmentCard({ item }) {
       <View style={styles.slideCardFooter}>
         <Text style={styles.dueText}>📅 Due: {formatDue(item.dueAt)}</Text>
         {item.attachments?.length > 0 && (
-          <Text style={styles.attachText}>📎 {item.attachments.length} file{item.attachments.length > 1 ? 's' : ''}</Text>
+          <Text style={styles.attachText}>
+            📎 {item.attachments.length} file
+            {item.attachments.length > 1 ? 's' : ''}
+          </Text>
         )}
       </View>
     </View>
@@ -91,19 +129,43 @@ function AssignmentCard({ item }) {
 // ── Material slide card ──────────────────────────────────────────────────────
 function MaterialCard({ item }) {
   const mime = item.file?.mimeType ?? '';
-  const icon = mime.includes('pdf') ? '📄' : mime.includes('image') ? '🖼️' : mime.includes('video') ? '🎬' : '📁';
+  const icon = mime.includes('pdf')
+    ? '📄'
+    : mime.includes('image')
+      ? '🖼️'
+      : mime.includes('video')
+        ? '🎬'
+        : '📁';
   return (
     <Pressable
-      style={({ pressed, hovered }) => [styles.matCard, hovered && styles.cardHovered, pressed && styles.cardPressed]}
+      style={({ pressed, hovered }) => [
+        styles.matCard,
+        hovered && styles.cardHovered,
+        pressed && styles.cardPressed,
+      ]}
       onPress={() => item.file?.url && Linking.openURL(item.file.url)}
     >
-      <Text style={styles.matType}>{mime.includes('pdf') ? 'PDF' : mime.includes('image') ? 'IMAGE' : mime.includes('video') ? 'VIDEO' : 'FILE'}</Text>
-      <View style={[styles.matIconCircle, { backgroundColor: colors.iconBgBlue }]}>
+      <Text style={styles.matType}>
+        {mime.includes('pdf')
+          ? 'PDF'
+          : mime.includes('image')
+            ? 'IMAGE'
+            : mime.includes('video')
+              ? 'VIDEO'
+              : 'FILE'}
+      </Text>
+      <View
+        style={[styles.matIconCircle, { backgroundColor: colors.iconBgBlue }]}
+      >
         <Text style={{ fontSize: 20 }}>{icon}</Text>
       </View>
-      <Text style={styles.matTitle} numberOfLines={2}>{item.title}</Text>
+      <Text style={styles.matTitle} numberOfLines={2}>
+        {item.title}
+      </Text>
       {item.description ? (
-        <Text style={styles.matDesc} numberOfLines={1}>{item.description}</Text>
+        <Text style={styles.matDesc} numberOfLines={1}>
+          {item.description}
+        </Text>
       ) : null}
       <Text style={styles.matOpen}>Open →</Text>
     </Pressable>
@@ -113,7 +175,15 @@ function MaterialCard({ item }) {
 // ── Quick action button ──────────────────────────────────────────────────────
 function QuickAction({ label, onPress }) {
   return (
-    <Pressable style={({ pressed, hovered }) => [styles.qaCard, hovered && styles.cardHovered, pressed && styles.cardPressed]} onPress={onPress}>
+    <Pressable
+      accessibilityRole="button"
+      style={({ pressed, hovered }) => [
+        styles.qaCard,
+        hovered && styles.cardHovered,
+        pressed && styles.cardPressed,
+      ]}
+      onPress={onPress}
+    >
       <Text style={styles.qaLabel}>{label}</Text>
     </Pressable>
   );
@@ -135,6 +205,7 @@ function Dots({ count, active }) {
 function SectionHeader({ title, onViewAll }) {
   return (
     <View style={styles.sectionHeader}>
+      <View style={styles.sectionMarker} />
       <Text style={styles.sectionTitle}>{title}</Text>
       {onViewAll && (
         <Pressable onPress={onViewAll}>
@@ -147,17 +218,21 @@ function SectionHeader({ title, onViewAll }) {
 
 export default function StudentHomeScreen({ navigation }) {
   const { user, logout } = useAuth();
+  const { width: screenWidth } = useWindowDimensions();
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const sliderWidth = Math.max(screenWidth - 32, 280);
 
   const dashQuery = useQuery({
     queryKey: ['portal', 'student', 'dashboard'],
-    queryFn: ({ signal }) => apiRequest('/student/dashboard', { auth: true, signal }),
+    queryFn: ({ signal }) =>
+      apiRequest('/student/dashboard', { auth: true, signal }),
     staleTime: 30_000,
   });
 
   const learningQuery = useQuery({
     queryKey: ['portal', 'student', 'learning'],
-    queryFn: ({ signal }) => apiRequest('/student/learning', { auth: true, signal }),
+    queryFn: ({ signal }) =>
+      apiRequest('/student/learning', { auth: true, signal }),
     staleTime: 30_000,
   });
 
@@ -231,7 +306,11 @@ export default function StudentHomeScreen({ navigation }) {
             <Pressable
               accessibilityLabel="Open navigation menu"
               onPress={() => setSidebarVisible(true)}
-              style={({ pressed, hovered }) => [styles.menuButton, hovered && styles.menuButtonHovered, pressed && styles.menuButtonPressed]}
+              style={({ pressed, hovered }) => [
+                styles.menuButton,
+                hovered && styles.menuButtonHovered,
+                pressed && styles.menuButtonPressed,
+              ]}
             >
               <Text style={styles.menuIcon}>☰</Text>
             </Pressable>
@@ -240,7 +319,9 @@ export default function StudentHomeScreen({ navigation }) {
                 <Text style={{ fontSize: 22 }}>🎓</Text>
               </View> */}
               <View>
-                <Text style={styles.brandName} numberOfLines={1}>{user?.instituteName ?? 'Coaching'}</Text>
+                <Text style={styles.brandName} numberOfLines={1}>
+                  {user?.instituteName ?? 'Coaching'}
+                </Text>
                 <Text style={styles.brandSub}>Student Portal</Text>
               </View>
             </View>
@@ -255,13 +336,21 @@ export default function StudentHomeScreen({ navigation }) {
               ]}
             >
               <View style={styles.avatarCircle}>
-                <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
+                <Text style={styles.avatarText}>
+                  {user?.name?.charAt(0).toUpperCase()}
+                </Text>
               </View>
-              <Text style={styles.nameLabel}>{user?.name?.split(' ')[0] ?? 'Student'} ▾</Text>
+              <Text style={styles.nameLabel}>
+                {user?.name?.split(' ')[0] ?? 'Student'} ▾
+              </Text>
             </Pressable>
           </View>
-          <Text style={styles.greeting}>{getGreeting()}, {user?.name?.split(' ')[0] ?? 'Student'} 👋</Text>
-          <Text style={styles.greetingSub}>Here's your learning overview today.</Text>
+          <Text style={styles.greeting}>
+            {getGreeting()}, {user?.name?.split(' ')[0] ?? 'Student'} 👋
+          </Text>
+          <Text style={styles.greetingSub}>
+            Here's your learning overview today.
+          </Text>
         </SafeAreaView>
         <View style={styles.waveBump} />
       </View>
@@ -271,10 +360,20 @@ export default function StudentHomeScreen({ navigation }) {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={[colors.dashGreen]} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={[colors.dashGreen]}
+          />
+        }
       >
         {/* ── Stat chips horizontal scroll ── */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipsRow}
+        >
           {STAT_CHIPS.map((chip) => (
             <StatChip
               key={chip.key}
@@ -291,9 +390,13 @@ export default function StudentHomeScreen({ navigation }) {
         <View style={styles.section}>
           <SectionHeader icon="📝" title="Active Assignments" />
           {learningQuery.isPending ? (
-            <View style={styles.emptyCard}><Text style={styles.emptyText}>Loading…</Text></View>
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>Loading…</Text>
+            </View>
           ) : assignments.length === 0 ? (
-            <View style={styles.emptyCard}><Text style={styles.emptyText}>No active assignments</Text></View>
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>No active assignments</Text>
+            </View>
           ) : (
             <>
               <ScrollView
@@ -302,13 +405,19 @@ export default function StudentHomeScreen({ navigation }) {
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
                 onScroll={(e) => {
-                  const idx = Math.round(e.nativeEvent.contentOffset.x / SLIDER_W);
+                  const idx = Math.round(
+                    e.nativeEvent.contentOffset.x / sliderWidth,
+                  );
                   setAssignIdx(idx);
                 }}
                 scrollEventThrottle={16}
               >
                 {assignments.map((item) => (
-                  <AssignmentCard key={item._id} item={item} />
+                  <AssignmentCard
+                    key={item._id}
+                    item={item}
+                    width={sliderWidth}
+                  />
                 ))}
               </ScrollView>
               <Dots count={assignments.length} active={assignIdx} />
@@ -320,11 +429,19 @@ export default function StudentHomeScreen({ navigation }) {
         <View style={styles.section}>
           <SectionHeader icon="📂" title="Study Materials" />
           {learningQuery.isPending ? (
-            <View style={styles.emptyCard}><Text style={styles.emptyText}>Loading…</Text></View>
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>Loading…</Text>
+            </View>
           ) : materials.length === 0 ? (
-            <View style={styles.emptyCard}><Text style={styles.emptyText}>No materials uploaded yet</Text></View>
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>No materials uploaded yet</Text>
+            </View>
           ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.matRow}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.matRow}
+            >
               {materials.map((item) => (
                 <MaterialCard key={item._id} item={item} />
               ))}
@@ -337,7 +454,12 @@ export default function StudentHomeScreen({ navigation }) {
           <View style={styles.section}>
             <SectionHeader icon="🏫" title="My Batch" />
             <View style={styles.batchCard}>
-              <View style={[styles.batchIconCircle, { backgroundColor: colors.iconBgGreen }]}>
+              <View
+                style={[
+                  styles.batchIconCircle,
+                  { backgroundColor: colors.iconBgGreen },
+                ]}
+              >
                 <Text style={{ fontSize: 20 }}>📅</Text>
               </View>
               <View style={styles.batchInfo}>
@@ -345,7 +467,10 @@ export default function StudentHomeScreen({ navigation }) {
                 <Text style={styles.batchCode}>{dash.batch.code}</Text>
               </View>
               <Pressable
-                style={({ pressed }) => [styles.batchBtn, pressed && { opacity: 0.7 }]}
+                style={({ pressed }) => [
+                  styles.batchBtn,
+                  pressed && { opacity: 0.7 },
+                ]}
                 onPress={() => navigation.navigate('StudentBatch')}
               >
                 <Text style={styles.batchBtnText}>Details →</Text>
@@ -358,11 +483,29 @@ export default function StudentHomeScreen({ navigation }) {
         <View style={styles.section}>
           <SectionHeader icon="⚡" title="Quick Actions" />
           <View style={styles.qaRow}>
-            <QuickAction label="My Batch" onPress={() => navigation.navigate('StudentBatch')} />
-            <QuickAction label="Subjects" onPress={() => navigation.navigate('StudentSubjects')} />
-            <QuickAction icon="📊" label="Results" onPress={() => navigation.navigate('StudentResults')} />
-            <QuickAction icon="📅" label="Schedule" onPress={() => navigation.navigate('StudentSchedule')} />
-            <QuickAction icon="📋" label="Attendance" onPress={() => navigation.navigate('StudentAttendance')} />
+            <QuickAction
+              label="My Batch"
+              onPress={() => navigation.navigate('StudentBatch')}
+            />
+            <QuickAction
+              label="Subjects"
+              onPress={() => navigation.navigate('StudentSubjects')}
+            />
+            <QuickAction
+              icon="📊"
+              label="Results"
+              onPress={() => navigation.navigate('StudentResults')}
+            />
+            <QuickAction
+              icon="📅"
+              label="Schedule"
+              onPress={() => navigation.navigate('StudentSchedule')}
+            />
+            <QuickAction
+              icon="📋"
+              label="Attendance"
+              onPress={() => navigation.navigate('StudentAttendance')}
+            />
           </View>
         </View>
       </ScrollView>
@@ -376,87 +519,149 @@ const styles = StyleSheet.create({
   // Header
   header: { backgroundColor: colors.dashGreen, paddingBottom: 20 },
   headerSafe: { paddingHorizontal: 18 },
-  headerTop: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 10 },
-  menuButton: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', marginRight: 2 },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 10,
+  },
+  menuButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 2,
+  },
   menuButtonHovered: { backgroundColor: 'rgba(255,255,255,0.14)' },
-  menuButtonPressed: { backgroundColor: 'rgba(255,255,255,0.24)', transform: [{ scale: 0.95 }] },
+  menuButtonPressed: {
+    backgroundColor: 'rgba(255,255,255,0.24)',
+    transform: [{ scale: 0.95 }],
+  },
   menuIcon: { fontSize: 21, color: '#fff' },
   headerBrand: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   brandIconCircle: {
-    width: 44, height: 44, borderRadius: 22,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brandName: { color: '#fff', fontSize: 16, fontWeight: '800' },
   brandSub: { color: 'rgba(255,255,255,0.75)', fontSize: 11 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  profileButtonHovered: { backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 22 },
-  profileButtonPressed: { backgroundColor: 'rgba(255,255,255,0.24)', transform: [{ scale: 0.97 }] },
+  profileButtonHovered: {
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 22,
+  },
+  profileButtonPressed: {
+    backgroundColor: 'rgba(255,255,255,0.24)',
+    transform: [{ scale: 0.97 }],
+  },
   avatarCircle: {
-    width: 34, height: 34, borderRadius: 17,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: colors.dashGreenAccent,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarText: { color: '#fff', fontSize: 14, fontWeight: '900' },
   nameLabel: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  greeting: { color: '#fff', fontSize: 22, fontWeight: '900', letterSpacing: -0.3, marginTop: 16 },
+  greeting: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.3,
+    marginTop: 16,
+  },
   greetingSub: { color: 'rgba(255,255,255,0.78)', fontSize: 13, marginTop: 4 },
   waveBump: {
-    position: 'absolute', bottom: -18, right: -28,
-    width: 140, height: 140, borderRadius: 70,
+    position: 'absolute',
+    bottom: -18,
+    right: -28,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
 
   // Scroll
   scroll: { flex: 1 },
-  scrollContent: { padding: 16, gap: 16, paddingBottom: 36 },
+  scrollContent: { padding: 16, gap: 18, paddingBottom: 40 },
 
   // Stat chips
   chipsRow: { gap: 10, paddingRight: 4 },
   chip: {
     backgroundColor: colors.dashCard,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.dashBorder,
     borderTopWidth: 3,
-    padding: 10,
-    width: 110,
+    padding: 12,
+    width: 124,
     alignItems: 'center',
     gap: 4,
-    elevation: 2,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
   },
-  chipValue: { fontSize: 13, fontWeight: '900', color: colors.dashText, textAlign: 'center' },
-  chipLabel: { fontSize: 10, color: colors.dashSubText, fontWeight: '500', textAlign: 'center' },
+  chipValue: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: colors.dashText,
+    textAlign: 'center',
+  },
+  chipLabel: {
+    fontSize: 10,
+    color: colors.dashSubText,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  chipMarker: { width: 8, height: 8, borderRadius: 4, marginBottom: 2 },
 
   // Section
   section: {
     backgroundColor: colors.dashCard,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.dashBorder,
-    padding: 14,
-    gap: 10,
-    elevation: 2,
+    padding: 16,
+    gap: 12,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
   },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sectionMarker: {
+    width: 4,
+    height: 18,
+    borderRadius: 2,
+    backgroundColor: colors.dashGreenAccent,
+  },
   sectionIcon: { fontSize: 16 },
-  sectionTitle: { fontSize: 14, fontWeight: '800', color: colors.dashText, flex: 1 },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: colors.dashText,
+    flex: 1,
+  },
   viewAll: { fontSize: 11, fontWeight: '700', color: colors.dashGreenAccent },
 
   // Empty
   emptyCard: {
     backgroundColor: colors.dashBg,
     borderRadius: 10,
-    padding: 20,
+    paddingVertical: 26,
+    paddingHorizontal: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.dashBorder,
   },
   emptyText: { fontSize: 13, color: colors.dashSubText },
 
@@ -464,13 +669,15 @@ const styles = StyleSheet.create({
   slideCard: {
     backgroundColor: colors.dashBg,
     borderRadius: 12,
-    padding: 14,
-    gap: 10,
+    padding: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.dashBorder,
   },
   slideCardTop: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   slideIconCircle: { display: 'none' },
   slideCardMeta: { flex: 1, gap: 2 },
-  slideCardTitle: { fontSize: 14, fontWeight: '800', color: colors.dashText },
+  slideCardTitle: { fontSize: 15, fontWeight: '900', color: colors.dashText },
   slideCardDesc: { fontSize: 12, color: colors.dashSubText },
   statusBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   badgeDone: { backgroundColor: '#DCFCE7' },
@@ -486,29 +693,47 @@ const styles = StyleSheet.create({
 
   // Dots
   dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.dashBorder },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.dashBorder,
+  },
   dotActive: { backgroundColor: colors.dashGreen, width: 18 },
 
   // Material cards
   matRow: { gap: 10, paddingRight: 4 },
   matCard: {
     backgroundColor: colors.dashBg,
-    borderRadius: 12,
-    padding: 12,
-    width: 130,
+    borderRadius: 14,
+    padding: 14,
+    width: 148,
     gap: 6,
+    borderWidth: 1,
+    borderColor: colors.dashBorder,
+    minHeight: 128,
   },
   matIconCircle: { display: 'none' },
-  matType: { color: colors.dashGreenAccent, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  matType: {
+    color: colors.dashGreenAccent,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
   matTitle: { fontSize: 12, fontWeight: '800', color: colors.dashText },
   matDesc: { fontSize: 11, color: colors.dashSubText },
-  matOpen: { fontSize: 11, fontWeight: '700', color: colors.dashGreenAccent, marginTop: 'auto' },
+  matOpen: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.dashGreenAccent,
+    marginTop: 'auto',
+  },
 
   // Batch card
   batchCard: {
     backgroundColor: colors.dashGreenLight,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 14,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
@@ -521,23 +746,31 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dashGreen,
     borderRadius: 20,
     paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
+    minHeight: 36,
+    justifyContent: 'center',
   },
   batchBtnText: { color: '#fff', fontSize: 12, fontWeight: '800' },
 
   // Quick actions
-  qaRow: { flexDirection: 'row', gap: 8 },
+  qaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   qaCard: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: 96,
+    minWidth: 96,
     backgroundColor: colors.dashBg,
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 15,
     alignItems: 'center',
     gap: 6,
     borderWidth: 1,
     borderColor: colors.dashBorder,
+    minHeight: 56,
   },
   qaLabel: { fontSize: 11, fontWeight: '700', color: colors.dashText },
-  cardHovered: { borderColor: colors.dashGreenAccent, backgroundColor: colors.dashGreenLight },
+  cardHovered: {
+    borderColor: colors.dashGreenAccent,
+    backgroundColor: colors.dashGreenLight,
+  },
   cardPressed: { opacity: 0.78, transform: [{ scale: 0.985 }] },
 });

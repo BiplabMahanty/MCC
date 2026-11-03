@@ -48,6 +48,14 @@ export function unpublishExam(id) {
   });
 }
 
+export function duplicateExam(id, body) {
+  return apiRequest(`/admin/exams/${id}/duplicate`, {
+    method: 'POST',
+    body,
+    auth: true,
+  });
+}
+
 // Student attempt
 export function startAttempt(examId) {
   return apiRequest(`/student/exams/${examId}/attempt`, {

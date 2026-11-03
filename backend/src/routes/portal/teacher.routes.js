@@ -7,6 +7,7 @@ const authorize = require('../../middleware/authorize');
 const asyncHandler = require('../../utils/asyncHandler');
 const teacherQuestionsRoutes = require('./teacherQuestions.routes');
 const teacherAnalyticsRoutes = require('./teacherAnalytics.routes');
+const teacherAssignmentsRoutes = require('./teacherAssignments.routes');
 const attendanceRoutes = require('../attendance.routes');
 
 const router = express.Router();
@@ -18,6 +19,7 @@ router.get('/batches', asyncHandler(teacherController.getBatches));
 router.get('/subjects', asyncHandler(teacherController.getSubjects));
 router.get('/students', asyncHandler(teacherController.getStudents));
 router.get('/schedule', asyncHandler(teacherController.getSchedule));
+router.use('/assignments', teacherAssignmentsRoutes);
 router.use('/questions', teacherQuestionsRoutes);
 router.use('/exams', require('./teacherExams.routes'));
 router.use('/exams/:id', teacherAnalyticsRoutes);

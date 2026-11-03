@@ -10,23 +10,42 @@ import StudentPageHeader from '../../portal/components/StudentPageHeader';
 import { useAttemptReview } from '../hooks/useExamAttempt';
 
 const VERDICT_CONFIG = {
-  correct: { bg: colors.successSurface, border: colors.success, label: '✓ Correct', labelColor: colors.success },
-  wrong: { bg: colors.errorSurface, border: colors.error, label: '✗ Wrong', labelColor: colors.error },
-  unanswered: { bg: colors.warningSurface, border: colors.warning, label: '— Skipped', labelColor: colors.warning },
+  correct: {
+    bg: colors.successSurface,
+    border: colors.success,
+    label: '✓ Correct',
+    labelColor: colors.success,
+  },
+  wrong: {
+    bg: colors.errorSurface,
+    border: colors.error,
+    label: '✗ Wrong',
+    labelColor: colors.error,
+  },
+  unanswered: {
+    bg: colors.warningSurface,
+    border: colors.warning,
+    label: '— Skipped',
+    labelColor: colors.warning,
+  },
 };
 
 function OptionRow({ option, index, isSelected, isCorrect }) {
   const bg = isCorrect
     ? colors.successSurface
     : isSelected
-    ? colors.errorSurface
-    : colors.white;
+      ? colors.errorSurface
+      : colors.white;
   const border = isCorrect
     ? colors.success
     : isSelected
-    ? colors.error
-    : colors.border;
-  const labelColor = isCorrect ? colors.success : isSelected ? colors.error : colors.mutedText;
+      ? colors.error
+      : colors.border;
+  const labelColor = isCorrect
+    ? colors.success
+    : isSelected
+      ? colors.error
+      : colors.mutedText;
 
   return (
     <View style={[styles.option, { backgroundColor: bg, borderColor: border }]}>
@@ -55,8 +74,15 @@ function QuestionCard({ item, number }) {
           <Text style={styles.metaDot}>·</Text>
           <Text style={styles.metaText}>{item.difficulty}</Text>
         </View>
-        <View style={[styles.verdictBadge, { backgroundColor: cfg.bg, borderColor: cfg.border }]}>
-          <Text style={[styles.verdictText, { color: cfg.labelColor }]}>{cfg.label}</Text>
+        <View
+          style={[
+            styles.verdictBadge,
+            { backgroundColor: cfg.bg, borderColor: cfg.border },
+          ]}
+        >
+          <Text style={[styles.verdictText, { color: cfg.labelColor }]}>
+            {cfg.label}
+          </Text>
         </View>
       </View>
 
@@ -73,7 +99,9 @@ function QuestionCard({ item, number }) {
             option={opt}
             index={i}
             isCorrect={i === item.correctOptionIndex}
-            isSelected={i === item.selectedOptionIndex && i !== item.correctOptionIndex}
+            isSelected={
+              i === item.selectedOptionIndex && i !== item.correctOptionIndex
+            }
           />
         ))}
       </View>
@@ -99,7 +127,8 @@ function QuestionCard({ item, number }) {
 
 export default function ExamReviewScreen({ navigation, route }) {
   const { examId } = route.params;
-  const { data, isPending, error, refetch, isFetching } = useAttemptReview(examId);
+  const { data, isPending, error, refetch, isFetching } =
+    useAttemptReview(examId);
 
   if (isPending)
     return (
@@ -111,35 +140,73 @@ export default function ExamReviewScreen({ navigation, route }) {
   if (error)
     return (
       <Screen>
-        <ErrorState message={error.message} onRetry={refetch} retrying={isFetching} />
+        <ErrorState
+          message={error.message}
+          onRetry={refetch}
+          retrying={isFetching}
+        />
       </Screen>
     );
 
   return (
-    <Screen>
+    <Screen fullBleed>
       <StatusBar style="dark" />
       <StudentPageHeader
         title="Answer Review"
         subtitle={data.examName}
         onBack={navigation.goBack}
       />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Summary strip */}
         <View style={styles.summaryRow}>
-          <View style={[styles.summaryChip, { backgroundColor: colors.successSurface }]}>
-            <Text style={[styles.summaryVal, { color: colors.success }]}>{data.correct}</Text>
-            <Text style={[styles.summaryLbl, { color: colors.success }]}>Correct</Text>
+          <View
+            style={[
+              styles.summaryChip,
+              { backgroundColor: colors.successSurface },
+            ]}
+          >
+            <Text style={[styles.summaryVal, { color: colors.success }]}>
+              {data.correct}
+            </Text>
+            <Text style={[styles.summaryLbl, { color: colors.success }]}>
+              Correct
+            </Text>
           </View>
-          <View style={[styles.summaryChip, { backgroundColor: colors.errorSurface }]}>
-            <Text style={[styles.summaryVal, { color: colors.error }]}>{data.wrong}</Text>
-            <Text style={[styles.summaryLbl, { color: colors.error }]}>Wrong</Text>
+          <View
+            style={[
+              styles.summaryChip,
+              { backgroundColor: colors.errorSurface },
+            ]}
+          >
+            <Text style={[styles.summaryVal, { color: colors.error }]}>
+              {data.wrong}
+            </Text>
+            <Text style={[styles.summaryLbl, { color: colors.error }]}>
+              Wrong
+            </Text>
           </View>
-          <View style={[styles.summaryChip, { backgroundColor: colors.warningSurface }]}>
-            <Text style={[styles.summaryVal, { color: colors.warning }]}>{data.unanswered}</Text>
-            <Text style={[styles.summaryLbl, { color: colors.warning }]}>Skipped</Text>
+          <View
+            style={[
+              styles.summaryChip,
+              { backgroundColor: colors.warningSurface },
+            ]}
+          >
+            <Text style={[styles.summaryVal, { color: colors.warning }]}>
+              {data.unanswered}
+            </Text>
+            <Text style={[styles.summaryLbl, { color: colors.warning }]}>
+              Skipped
+            </Text>
           </View>
-          <View style={[styles.summaryChip, { backgroundColor: colors.dashBg }]}>
-            <Text style={styles.summaryVal}>{data.obtainedMarks}/{data.totalMarks}</Text>
+          <View
+            style={[styles.summaryChip, { backgroundColor: colors.dashBg }]}
+          >
+            <Text style={styles.summaryVal}>
+              {data.obtainedMarks}/{data.totalMarks}
+            </Text>
             <Text style={styles.summaryLbl}>Marks</Text>
           </View>
         </View>
@@ -185,7 +252,11 @@ const styles = StyleSheet.create({
   },
   qNum: { fontSize: 13, fontWeight: '900', color: colors.dashText },
   metaRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { fontSize: 11, color: colors.mutedText, textTransform: 'capitalize' },
+  metaText: {
+    fontSize: 11,
+    color: colors.mutedText,
+    textTransform: 'capitalize',
+  },
   metaDot: { fontSize: 11, color: colors.mutedText },
   verdictBadge: {
     borderRadius: 20,

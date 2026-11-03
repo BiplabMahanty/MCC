@@ -1,0 +1,72 @@
+// ADD THIS SECTION TO TeacherAssignmentFormScreen AFTER THE DUE DATE FIELD
+// Location: After the "Due Date" formGroup and before the submitButton
+
+{/* ATTACHMENTS SECTION - ADD THIS */}
+<View style={styles.formGroup}>
+  <Text style={styles.label}>Attachments (Optional)</Text>
+  <View style={styles.attachmentButtons}>
+    <Pressable
+      style={({ pressed, hovered }) => [
+        styles.attachButton,
+        hovered && styles.attachButtonHovered,
+        pressed && styles.attachButtonPressed,
+      ]}
+      onPress={() => Alert.alert('Coming Soon', 'Photo upload feature will be available soon')}
+    >
+      <Text style={styles.attachButtonText}>📷 Add Photo</Text>
+    </Pressable>
+    <Pressable
+      style={({ pressed, hovered }) => [
+        styles.attachButton,
+        hovered && styles.attachButtonHovered,
+        pressed && styles.attachButtonPressed,
+      ]}
+      onPress={() => Alert.alert('Coming Soon', 'PDF upload feature will be available soon')}
+    >
+      <Text style={styles.attachButtonText}>📄 Add PDF</Text>
+    </Pressable>
+  </View>
+  <Text style={styles.attachmentHint}>
+    📌 Tip: You can add photos and PDFs to help students understand the assignment better
+  </Text>
+</View>
+{/* END ATTACHMENTS SECTION */}
+
+// ADD THESE STYLES TO StyleSheet.create()
+// Location: After submitButtonText style
+
+attachmentButtons: {
+  flexDirection: 'row',
+  gap: 8,
+  marginTop: 8,
+},
+attachButton: {
+  flex: 1,
+  backgroundColor: colors.dashCard,
+  borderRadius: 10,
+  borderWidth: 2,
+  borderColor: colors.dashGreenAccent,
+  paddingVertical: 12,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+attachButtonHovered: {
+  backgroundColor: colors.dashGreenLight,
+  borderColor: colors.dashGreen,
+},
+attachButtonPressed: {
+  opacity: 0.8,
+  transform: [{ scale: 0.98 }],
+},
+attachButtonText: {
+  fontSize: 13,
+  fontWeight: '700',
+  color: colors.dashGreen,
+},
+attachmentHint: {
+  fontSize: 11,
+  color: colors.dashSubText,
+  fontStyle: 'italic',
+  marginTop: 8,
+  textAlign: 'center',
+},

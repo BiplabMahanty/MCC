@@ -21,6 +21,9 @@ export const publishExam = (id) =>
 export const unpublishExam = (id) =>
   client.post(`/admin/exams/${id}/unpublish`).then((r) => r.data.data);
 
+export const duplicateExam = (id, body) =>
+  client.post(`/admin/exams/${id}/duplicate`, body).then((r) => r.data.data);
+
 export const listExamResults = (examId, params) =>
   client.get(`/admin/exams/${examId}/results`, { params }).then((r) => r.data);
 

@@ -11,5 +11,6 @@ router.patch('/:id', controller.update);
 router.delete('/:id', controller.remove);
 router.post('/:id/publish', controller.publish);
 router.post('/:id/unpublish', controller.unpublish);
+router.post('/:id/duplicate', controller.duplicate);
 
 module.exports = router;
