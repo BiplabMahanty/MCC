@@ -1,6 +1,7 @@
 const Batch = require('../../models/Batch');
 const Exam = require('../../models/Exam');
 const Question = require('../../models/Question');
+const QuestionSet = require('../../models/QuestionSet');
 const Subject = require('../../models/Subject');
 const User = require('../../models/User');
 const AppError = require('../../utils/AppError');
@@ -10,6 +11,7 @@ const { ROLES } = require('../../constants/roles');
 const populateRefs = [
   { path: 'batchId', select: 'name code' },
   { path: 'subjectId', select: 'name code' },
+  { path: 'questionSetId', select: 'name totalQuestions' },
   { path: 'teacherIds', select: 'name email' },
 ];
 
@@ -58,18 +60,18 @@ async function validateRelations(instituteId, input) {
     );
   }
 
-  if (input.questionIds?.length) {
+  if (input.questionSetId) {
     checks.push(
-      Question.countDocuments({
-        _id: { $in: input.questionIds },
+      QuestionSet.exists({
+        _id: input.questionSetId,
         instituteId,
         isDeleted: false,
-      }).then((count) => {
-        if (count !== input.questionIds.length)
+      }).then((exists) => {
+        if (!exists)
           throw new AppError(
-            'One or more questions not found.',
+            'Question set not found.',
             400,
-            'INVALID_QUESTION',
+            'INVALID_QUESTION_SET',
           );
       }),
     );
@@ -96,7 +98,7 @@ async function list(instituteId, query) {
 
   const [exams, total] = await Promise.all([
     Exam.find(filter)
-      .select('-questions -questionIds -isDeleted -deletedAt -__v')
+      .select('-questions -isDeleted -deletedAt -__v')
       .populate(populateRefs)
       .sort({ startTime: -1 })
       .skip(skip)
@@ -163,25 +165,35 @@ async function publish(instituteId, userId, id) {
   if (!exam) throw new AppError('Exam not found.', 404, 'NOT_FOUND');
   if (exam.status === 'published')
     throw new AppError('Exam is already published.', 409, 'ALREADY_PUBLISHED');
-  if (!exam.questionIds.length)
+  if (!exam.questionSetId)
     throw new AppError(
-      'Add at least one question before publishing.',
+      'Assign a question set before publishing.',
       400,
-      'NO_QUESTIONS',
+      'NO_QUESTION_SET',
     );
+
+  // Fetch question set and its questions
+  const questionSet = await QuestionSet.findOne({
+    _id: exam.questionSetId,
+    instituteId,
+    isDeleted: false,
+  }).lean();
+
+  if (!questionSet)
+    throw new AppError('Question set not found.', 400, 'INVALID_QUESTION_SET');
 
   // Snapshot questions at publish time
   const questions = await Question.find({
-    _id: { $in: exam.questionIds },
+    _id: { $in: questionSet.questionIds },
     instituteId,
     isDeleted: false,
   })
     .select('content options correctOptionIndex topic difficulty')
     .lean();
 
-  if (questions.length !== exam.questionIds.length)
+  if (questions.length !== questionSet.questionIds.length)
     throw new AppError(
-      'One or more questions were deleted. Update the question list.',
+      'One or more questions in the set were deleted. Update the question set.',
       400,
       'INVALID_QUESTION',
     );
@@ -245,7 +257,7 @@ async function duplicate(instituteId, userId, id, input) {
     batchId: originalExam.batchId,
     subjectId: originalExam.subjectId,
     teacherIds: originalExam.teacherIds,
-    questionIds: originalExam.questionIds,
+    questionSetId: originalExam.questionSetId,
     durationMinutes: input.durationMinutes ?? originalExam.durationMinutes,
     startTime: input.startTime,
     endTime: input.endTime,

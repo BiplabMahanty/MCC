@@ -15,7 +15,7 @@ const DEFAULTS = {
   marksPerQuestion: '',
   negativeMarks: '0',
   instructions: '',
-  questionIds: [],
+  questionSetId: '',
 };
 
 export const ExamDraftContext = createContext(null);
@@ -52,7 +52,7 @@ export default function ExamDraftProvider({ children }) {
       marksPerQuestion: prefill.marksPerQuestion ? String(prefill.marksPerQuestion) : '',
       negativeMarks: prefill.negativeMarks ? String(prefill.negativeMarks) : '0',
       instructions: prefill.instructions ?? '',
-      questionIds: prefill.questionIds ?? [],
+      questionSetId: prefill.questionSetId ?? '',
     });
   }, []);
 

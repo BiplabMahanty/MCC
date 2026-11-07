@@ -26,7 +26,7 @@ import QuestionFormScreen from '../features/questions/screens/QuestionFormScreen
 import QuestionPreviewScreen from '../features/questions/screens/QuestionPreviewScreen';
 import ExamListScreen from '../features/exams/screens/ExamListScreen';
 import ExamFormScreen from '../features/exams/screens/ExamFormScreen';
-import QuestionPickerScreen from '../features/exams/screens/QuestionPickerScreen';
+import QuestionSetSelectorScreen from '../features/exams/screens/QuestionSetSelectorScreen';
 import ExamDetailScreen from '../features/exams/screens/ExamDetailScreen';
 import ExamInstructionsScreen from '../features/exams/screens/ExamInstructionsScreen';
 import ExamEngineScreen from '../features/exams/screens/ExamEngineScreen';
@@ -77,7 +77,7 @@ const ADMIN_PUSH_SCREENS = (
     <Stack.Screen name="QuestionPreview" component={QuestionPreviewScreen} />
     <Stack.Screen name="AdminExamList" component={ExamListScreen} initialParams={{ role: 'admin' }} />
     <Stack.Screen name="ExamForm" component={ExamFormScreen} />
-    <Stack.Screen name="QuestionPicker" component={QuestionPickerScreen} />
+    <Stack.Screen name="QuestionSetSelector" component={QuestionSetSelectorScreen} />
     <Stack.Screen name="ExamDetail" component={ExamDetailScreen} />
     <Stack.Screen name="TeacherDetail" component={TeacherDetailScreen} />
     <Stack.Screen name="FeePlanList" component={FeePlanListScreen} />

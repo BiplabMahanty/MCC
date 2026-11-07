@@ -7,10 +7,11 @@ export function login(credentials) {
   });
 }
 
-export function refreshSession(refreshToken) {
+export function refreshSession(refreshToken, { signal } = {}) {
   return apiRequest('/auth/refresh', {
     method: 'POST',
     body: { refreshToken },
+    signal,
   });
 }
 

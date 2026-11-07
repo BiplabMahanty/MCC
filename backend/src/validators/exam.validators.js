@@ -14,7 +14,7 @@ const examFields = {
   batchId: objectId,
   subjectId: objectId,
   teacherIds: z.array(objectId).max(10).default([]),
-  questionIds: z.array(objectId).min(1).max(200),
+  questionSetId: objectId,
   durationMinutes: z.number().int().min(1).max(600),
   startTime: isoDatetime,
   endTime: isoDatetime,

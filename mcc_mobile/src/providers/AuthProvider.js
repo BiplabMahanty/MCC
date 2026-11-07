@@ -21,6 +21,7 @@ import {
 export const AuthContext = createContext(null);
 
 const STARTUP_SCREEN_MINIMUM_MS = 2000;
+const STARTUP_SESSION_TIMEOUT_MS = 8000;
 
 function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -52,36 +53,44 @@ export default function AuthProvider({ children }) {
     }
   }, [queryClient]);
 
-  const refreshSession = useCallback(async () => {
-    try {
-      const storedRefreshToken = await getRefreshToken();
+  const refreshSession = useCallback(
+    async ({ signal } = {}) => {
+      try {
+        const storedRefreshToken = await getRefreshToken();
 
-      if (!storedRefreshToken) {
+        if (!storedRefreshToken) {
+          return false;
+        }
+
+        const session = await authApi.refreshSession(storedRefreshToken, {
+          signal,
+        });
+        await applySession(session);
+        return true;
+      } catch {
+        await clearSession();
         return false;
       }
-
-      const session = await authApi.refreshSession(storedRefreshToken);
-      await applySession(session);
-      return true;
-    } catch {
-      await clearSession();
-      return false;
-    }
-  }, [applySession, clearSession]);
+    },
+    [applySession, clearSession],
+  );
 
   useEffect(() => {
     setRefreshHandler(refreshSession);
     let active = true;
+    const startupAbortController = new AbortController();
 
     async function initializeSession() {
-      const startedAt = Date.now();
-      await refreshSession();
+      const minimumSplash = wait(STARTUP_SCREEN_MINIMUM_MS);
+      const sessionRestore = refreshSession({
+        signal: startupAbortController.signal,
+      });
+      const sessionTimeout = wait(STARTUP_SESSION_TIMEOUT_MS).then(() => {
+        startupAbortController.abort();
+      });
 
-      const remainingTime = Math.max(
-        0,
-        STARTUP_SCREEN_MINIMUM_MS - (Date.now() - startedAt),
-      );
-      await wait(remainingTime);
+      await Promise.race([sessionRestore, sessionTimeout]);
+      await minimumSplash;
 
       if (active) {
         setInitializing(false);
@@ -92,6 +101,7 @@ export default function AuthProvider({ children }) {
 
     return () => {
       active = false;
+      startupAbortController.abort();
       setRefreshHandler(null);
     };
   }, [refreshSession]);

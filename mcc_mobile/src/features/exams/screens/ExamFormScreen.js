@@ -73,8 +73,8 @@ export default function ExamFormScreen({ navigation, route }) {
       e.totalMarks = 'Enter a number';
     if (!draft.marksPerQuestion || isNaN(Number(draft.marksPerQuestion)))
       e.marksPerQuestion = 'Enter a number';
-    if (draft.questionIds.length === 0)
-      e.questionIds = 'Select at least one question';
+    if (!draft.questionSetId)
+      e.questionSetId = 'Select a question set';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -88,7 +88,7 @@ export default function ExamFormScreen({ navigation, route }) {
       academicSession: draft.academicSession.trim(),
       batchId: draft.batchId,
       subjectId: draft.subjectId,
-      questionIds: draft.questionIds,
+      questionSetId: draft.questionSetId,
       durationMinutes: Number(draft.durationMinutes),
       startTime: toIso(draft.startDate, draft.startTime),
       endTime: toIso(draft.endDate, draft.endTime),
@@ -253,15 +253,15 @@ export default function ExamFormScreen({ navigation, route }) {
 
         <View style={styles.questionSection}>
           <Text style={styles.sectionLabel}>
-            Questions selected: {draft.questionIds.length}
+            Question Set: {draft.questionSetId ? 'Selected' : 'Not selected'}
           </Text>
-          {errors.questionIds ? (
-            <Text style={styles.fieldError}>{errors.questionIds}</Text>
+          {errors.questionSetId ? (
+            <Text style={styles.fieldError}>{errors.questionSetId}</Text>
           ) : null}
           <AppButton
-            label="Pick questions from bank"
+            label="Select Question Set"
             onPress={() =>
-              navigation.navigate('QuestionPicker', {
+              navigation.navigate('QuestionSetSelector', {
                 subjectId: draft.subjectId,
               })
             }

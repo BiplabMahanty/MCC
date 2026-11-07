@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, RefreshControl } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import Loader from '../../../components/common/Loader';
@@ -51,6 +51,11 @@ export default function ExamResultScreen({ navigation, route }) {
   const attemptQuery = useAttempt(examId);
   const resultQuery = useStudentResult(examId);
 
+  const handleRefresh = () => {
+    attemptQuery.refetch();
+    resultQuery.refetch();
+  };
+
   if (attemptQuery.isPending) {
     return (
       <Screen fullBleed>
@@ -74,6 +79,13 @@ export default function ExamResultScreen({ navigation, route }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={attemptQuery.isPending || resultQuery.isPending}
+            onRefresh={handleRefresh}
+            tintColor={colors.dashGreen}
+          />
+        }
       >
         <View style={styles.header}>
           <Pressable
@@ -173,6 +185,13 @@ export default function ExamResultScreen({ navigation, route }) {
                 value={scores?.unanswered ?? 0}
                 tone="Warning"
               />
+              {scores?.negativeMarks ? (
+                <StatCard
+                  label="Negative"
+                  value={scores?.negativeMarks ?? 0}
+                  tone="Error"
+                />
+              ) : null}
             </View>
           </View>
         ) : null}
@@ -203,11 +222,6 @@ export default function ExamResultScreen({ navigation, route }) {
               onPress={() => navigation.navigate('ExamReview', { examId })}
             />
           ) : null}
-          <ActionButton
-            label="Back to exams"
-            secondary
-            onPress={() => navigation.popToTop()}
-          />
         </View>
       </ScrollView>
     </Screen>
@@ -280,10 +294,18 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   heroCard: {
-    backgroundColor: colors.black,
-    borderRadius: 0,
+    backgroundColor: colors.white,
+    borderRadius: 16,
     padding: 20,
     gap: 18,
+    marginHorizontal: 20,
+    borderColor: colors.border,
+    borderWidth: 1,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
   },
   heroTopRow: {
     alignItems: 'flex-start',
@@ -291,27 +313,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   eyebrow: {
-    color: 'rgba(255,255,255,0.58)',
+    color: colors.mutedText,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   heroScore: {
-    color: colors.white,
+    color: colors.black,
     fontSize: 42,
     fontWeight: '900',
     letterSpacing: -1,
     marginTop: 5,
   },
   heroScoreDenominator: {
-    color: 'rgba(255,255,255,0.48)',
+    color: colors.mutedText,
     fontSize: 22,
     fontWeight: '700',
   },
   gradeBadge: {
     alignItems: 'center',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.dashUp,
     borderRadius: 16,
     minWidth: 68,
     paddingHorizontal: 12,
@@ -330,7 +352,7 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   progressTrack: {
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: colors.dashBg,
     borderRadius: 4,
     height: 8,
     overflow: 'hidden',
@@ -342,7 +364,7 @@ const styles = StyleSheet.create({
   },
   heroFooter: { alignItems: 'baseline', flexDirection: 'row', gap: 8 },
   percentValue: { color: colors.primary, fontSize: 24, fontWeight: '900' },
-  percentCaption: { color: 'rgba(255,255,255,0.55)', fontSize: 12 },
+  percentCaption: { color: colors.mutedText, fontSize: 12 },
   rankCard: {
     alignItems: 'center',
     backgroundColor: colors.white,
@@ -441,26 +463,38 @@ const styles = StyleSheet.create({
   actionsSection: { gap: 10, paddingHorizontal: 20, paddingTop: 2 },
   actionButton: {
     alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 14,
+    backgroundColor: colors.dashUp,
+    borderRadius: 16,
     flexDirection: 'row',
     justifyContent: 'center',
     minHeight: 54,
     paddingHorizontal: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
   },
   actionButtonSecondary: {
     backgroundColor: colors.white,
-    borderColor: colors.primary,
+    borderColor: colors.dashUp,
     borderWidth: 1.5,
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
   },
   actionButtonHovered: {
-    backgroundColor: colors.gradientStart,
-    borderColor: colors.gradientStart,
+    backgroundColor: colors.dashGreen,
+    borderColor: colors.dashGreen,
     elevation: 3,
+    opacity: 0.9,
   },
   actionButtonPressed: { opacity: 0.82, transform: [{ scale: 0.985 }] },
   actionLabel: { color: colors.white, fontSize: 16, fontWeight: '900' },
-  actionLabelSecondary: { color: colors.primary },
+  actionLabelSecondary: { color: colors.dashUp },
   actionArrow: {
     color: colors.white,
     fontSize: 24,
@@ -468,5 +502,5 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     marginTop: -2,
   },
-  actionArrowSecondary: { color: colors.primary },
+  actionArrowSecondary: { color: colors.dashUp },
 });

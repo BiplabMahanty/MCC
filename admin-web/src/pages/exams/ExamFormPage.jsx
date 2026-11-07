@@ -13,6 +13,7 @@ import Checkbox from '../../components/ui/Checkbox';
 import MultiSelect from '../../components/ui/MultiSelect';
 import Badge from '../../components/ui/Badge';
 import Spinner from '../../components/ui/Spinner';
+import QuestionSetSelector from '../../components/ui/QuestionSetSelector';
 import client from '../../api/client';
 
 const EXAM_TYPES = [
@@ -138,7 +139,7 @@ export default function ExamFormPage() {
   const { data: subjects = [] } = useSubjectOptions();
   const { data: teachers = [] } = useTeacherOptions();
 
-  const [questionIds, setQuestionIds] = useState([]);
+  const [questionSetId, setQuestionSetId] = useState('');
   const [teacherIds, setTeacherIds] = useState([]);
   const [negativeMarking, setNegativeMarking] = useState(false);
   const [watchedSubjectId, setWatchedSubjectId] = useState('');
@@ -171,13 +172,13 @@ export default function ExamFormPage() {
       instructions: exam.instructions ?? '',
     });
     setNegativeMarking(exam.negativeMarking ?? false);
-    setQuestionIds(exam.questionIds?.map((q) => q._id ?? q) ?? []);
+    setQuestionSetId(exam.questionSetId?._id ?? exam.questionSetId ?? '');
     setTeacherIds(exam.teacherIds?.map((t) => t._id ?? t) ?? []);
   }, [isEdit, exam]);
 
   const onSubmit = async (values) => {
-    if (questionIds.length === 0) {
-      toast.error('Add at least one question.');
+    if (!questionSetId) {
+      toast.error('Select a question set.');
       return;
     }
     try {
@@ -189,7 +190,7 @@ export default function ExamFormPage() {
         negativeMarks: Number(values.negativeMarks ?? 0),
         startTime: new Date(values.startTime).toISOString(),
         endTime: new Date(values.endTime).toISOString(),
-        questionIds,
+        questionSetId,
         teacherIds,
       };
       if (isEdit) {
@@ -280,15 +281,12 @@ export default function ExamFormPage() {
             {...register('instructions')} />
         </div>
 
-        {/* Questions */}
+        {/* Question Set */}
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-primary">Questions</h2>
-            <span className="text-xs text-text-muted">{questionIds.length} selected</span>
-          </div>
-          <QuestionPicker selectedIds={questionIds} onChange={setQuestionIds} subjectId={watchedSubjectId} />
-          {questionIds.length === 0 && (
-            <p className="text-xs text-error">At least one question is required to save.</p>
+          <h2 className="text-sm font-semibold text-text-primary">Question Set</h2>
+          <QuestionSetSelector value={questionSetId} onChange={setQuestionSetId} subjectId={watchedSubjectId} />
+          {!questionSetId && (
+            <p className="text-xs text-error">A question set is required to save.</p>
           )}
         </div>
 

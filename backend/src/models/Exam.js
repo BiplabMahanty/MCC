@@ -60,9 +60,11 @@ const examSchema = new mongoose.Schema(
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
       default: [],
     },
-    questionIds: {
-      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
-      default: [],
+    questionSetId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'QuestionSet',
+      required: true,
+      index: true,
     },
     // Populated at publish time; never modified after publish
     questions: { type: [snapshotQuestionSchema], default: [] },

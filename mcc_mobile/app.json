@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Coaching Management System",
-    "slug": "coaching-management-system",
+    "name": "Mahapatra Coaching Center",
+    "slug": "mahapatra-coaching-center",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "csm",
@@ -14,10 +14,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.csm.mobile"
+      "bundleIdentifier": "com.mahapatra.coaching"
     },
     "android": {
-      "package": "com.csm.mobile"
+      "package": "com.mahapatra.coaching"
     },
     "plugins": [
       "expo-dev-client",

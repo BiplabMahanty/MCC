@@ -135,3 +135,8 @@ export function listTeacherExamResults(examId, params, signal) {
     signal,
   });
 }
+
+// Question Sets
+export function listQuestionSets(params) {
+  return apiRequest(`/admin/question-sets${qs(params)}`, { auth: true });
+}

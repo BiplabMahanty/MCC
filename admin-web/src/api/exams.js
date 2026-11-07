@@ -32,3 +32,6 @@ export const publishResults = (examId) =>
 
 export const unpublishResults = (examId) =>
   client.post(`/admin/exams/${examId}/results/unpublish`);
+
+export const listQuestionSets = (params) =>
+  client.get('/admin/question-sets', { params }).then((r) => r.data);
