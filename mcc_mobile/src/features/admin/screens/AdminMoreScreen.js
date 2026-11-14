@@ -10,6 +10,7 @@ const ITEMS = [
   { label: 'Batches', icon: '📅', route: 'AdminEntityList', params: { entityType: 'batches' } },
   { label: 'Subjects', icon: '📖', route: 'AdminEntityList', params: { entityType: 'subjects' } },
   { label: 'Question Bank', icon: '❓', route: 'AdminQuestionBank', params: { role: 'admin' } },
+  { label: 'Question Sets', icon: '📦', route: 'QuestionSetList', params: {} },
   { label: 'Exams', icon: '📝', route: 'AdminExamList', params: { role: 'admin' } },
   { label: 'Schedule', icon: '🗓️', route: 'ScheduleList', params: {} },
   { label: 'Fee Plans', icon: '💳', route: 'FeePlanList', params: {} },
@@ -55,8 +56,7 @@ export default function AdminMoreScreen({ navigation }) {
               </View>
               <Text style={styles.chevron}>›</Text>
             </Pressable>
-          ))}
-        </View>
+          ))}</View>
 
         <Pressable
           style={({ pressed }) => [styles.signOutBtn, pressed && styles.rowPressed]}

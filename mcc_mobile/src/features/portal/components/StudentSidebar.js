@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import {
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -43,6 +44,21 @@ export default class StudentSidebar extends Component {
   handleNavigate = (route) => {
     this.props.onClose?.();
     this.props.navigation.navigate(route);
+  };
+
+  confirmLogout = () => {
+    const { onLogout, onClose } = this.props;
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: () => {
+          onClose?.();
+          onLogout?.();
+        },
+      },
+    ]);
   };
 
   renderMenuItem = (item) => {
@@ -124,10 +140,7 @@ export default class StudentSidebar extends Component {
               ))}
               <View style={styles.divider} />
               <Pressable
-                onPress={() => {
-                  onClose?.();
-                  onLogout?.();
-                }}
+                onPress={this.confirmLogout}
                 style={({ pressed, hovered }) => [
                   styles.menuItem,
                   styles.logoutItem,

@@ -153,10 +153,6 @@ export default function AdminHomeScreen({ navigation }) {
                   </View>
                 </View>
               )}
-              <View style={styles.avatarCircle}>
-                <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase()}</Text>
-              </View>
-              <Text style={styles.adminLabel}>{user?.name?.split(' ')[0] ?? 'Admin'} ▾</Text>
             </View>
           </View>
 
@@ -305,16 +301,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   bellBadgeText: { color: '#fff', fontSize: 9, fontWeight: '900' },
-  avatarCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.dashGreenAccent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { color: '#fff', fontSize: 14, fontWeight: '900' },
-  adminLabel: { color: '#fff', fontSize: 13, fontWeight: '700' },
+
   greetingRow: { marginTop: 18 },
   greeting: { color: '#fff', fontSize: 22, fontWeight: '900', letterSpacing: -0.3 },
   greetingSub: { color: 'rgba(255,255,255,0.78)', fontSize: 13, marginTop: 4, lineHeight: 18 },

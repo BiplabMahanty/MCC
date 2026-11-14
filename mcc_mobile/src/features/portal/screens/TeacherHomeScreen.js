@@ -198,25 +198,6 @@ export default function TeacherHomeScreen({ navigation }) {
                 <Text style={styles.brandSub}>Teacher Portal</Text>
               </View>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Open profile menu"
-              onPress={() => setSidebarVisible(true)}
-              style={({ pressed, hovered }) => [
-                styles.headerRight,
-                hovered && styles.profileButtonHovered,
-                pressed && styles.profileButtonPressed,
-              ]}
-            >
-              <View style={styles.avatarCircle}>
-                <Text style={styles.avatarText}>
-                  {user?.name?.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-              <Text style={styles.nameLabel}>
-                {user?.name?.split(' ')[0] ?? 'Teacher'} ▾
-              </Text>
-            </Pressable>
           </View>
           <Text style={styles.greeting}>
             {getGreeting()}, {user?.name?.split(' ')[0] ?? 'Teacher'} 👋
@@ -419,24 +400,7 @@ const styles = StyleSheet.create({
   brandName: { color: '#fff', fontSize: 16, fontWeight: '800' },
   brandSub: { color: 'rgba(255,255,255,0.75)', fontSize: 11 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  profileButtonHovered: {
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    borderRadius: 22,
-  },
-  profileButtonPressed: {
-    backgroundColor: 'rgba(255,255,255,0.24)',
-    transform: [{ scale: 0.97 }],
-  },
-  avatarCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.dashGreenAccent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: { color: '#fff', fontSize: 14, fontWeight: '900' },
-  nameLabel: { color: '#fff', fontSize: 13, fontWeight: '700' },
+
   greeting: {
     color: '#fff',
     fontSize: 22,

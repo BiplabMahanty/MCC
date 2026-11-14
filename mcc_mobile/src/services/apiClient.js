@@ -23,7 +23,7 @@ export function setRefreshHandler(handler) {
 }
 
 async function parseResponse(response) {
-  if (response.status === 204) {
+  if (response.status === 204 || response.status === 304) {
     return null;
   }
 

@@ -44,7 +44,7 @@ export default function QuestionSetListPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-text-primary">Question Sets</h1>
-        <Button onClick={() => navigate('/question-sets/create')}>
+        <Button onClick={() => navigate('/question-sets/new')}>
           <Plus size={16} /> Create Set
         </Button>
       </div>

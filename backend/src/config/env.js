@@ -36,6 +36,7 @@ const env = Object.freeze({
   logLevel: process.env.LOG_LEVEL || 'info',
   rateLimitWindowMs: positiveInteger('RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000),
   rateLimitMax: positiveInteger('RATE_LIMIT_MAX', 200),
+  examRateLimitMax: positiveInteger('EXAM_RATE_LIMIT_MAX', 300),
   authRateLimitMax: positiveInteger('AUTH_RATE_LIMIT_MAX', 20),
   connectionTimeoutMs: positiveInteger('CONNECTION_TIMEOUT_MS', 5000),
   jwtAccessSecret,

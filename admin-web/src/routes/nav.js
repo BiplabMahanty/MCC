@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Bell,
   FileBarChart,
+  Boxes,
 } from 'lucide-react';
 
 export const NAV = [
@@ -43,6 +44,7 @@ export const NAV = [
     items: [
       { label: 'Exams', path: '/exams', icon: ClipboardCheck },
       { label: 'Questions', path: '/questions', icon: FileText },
+      { label: 'Question Sets', path: '/question-sets', icon: Boxes },
     ],
   },
   {

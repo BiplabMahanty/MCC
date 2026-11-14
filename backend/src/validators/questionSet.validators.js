@@ -7,6 +7,7 @@ const questionSetFields = {
   description: z.string().trim().max(1000).default(''),
   subjectId: objectId,
   questionIds: z.array(objectId).min(1).max(200),
+  isActive: z.boolean().default(true),
 };
 
 const questionSetCreateSchema = z
