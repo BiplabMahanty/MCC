@@ -1,4 +1,4 @@
-const { rateLimit } = require('express-rate-limit');
+const { ipKeyGenerator, rateLimit } = require('express-rate-limit');
 
 const env = require('../config/env');
 
@@ -27,7 +27,10 @@ const examAttemptRateLimiter = rateLimit({
   legacyHeaders: false,
   // authenticate runs before these route-level handlers, so each student
   // gets an independent bucket instead of sharing the Wi-Fi IP bucket.
-  keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+  keyGenerator: (req) =>
+    req.user?._id
+      ? `user:${req.user._id.toString()}`
+      : `ip:${ipKeyGenerator(req.ip)}`,
   message: {
     status: 'error',
     code: 'EXAM_RATE_LIMIT_EXCEEDED',

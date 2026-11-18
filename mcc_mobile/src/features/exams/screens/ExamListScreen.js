@@ -17,8 +17,15 @@ import Screen from '../../../components/common/Screen';
 import colors from '../../../theme/colors';
 import AdminHeader from '../../admin/components/AdminHeader';
 import StudentPageHeader from '../../portal/components/StudentPageHeader';
-import { useDeleteExam, useExams, usePublishExam, useDuplicateExam } from '../hooks/useExams';
+import {
+  useDeleteExam,
+  useExams,
+  usePublishExam,
+  useDuplicateExam,
+} from '../hooks/useExams';
 import ExamReplicaModal from '../components/ExamReplicaModal';
+import { saveExamPaper, shareExamPaper } from '../services/examPaperActions';
+import useAuth from '../../../hooks/useAuth';
 
 const STATUS_FILTERS = [
   { label: 'All', value: undefined },
@@ -40,11 +47,15 @@ function statusBg(status) {
 
 // ── Student exam card ────────────────────────────────────────────────────────
 function StudentExamCard({ item, onPress }) {
-  const start = item.startTime ? new Date(item.startTime).toLocaleString('en-IN') : '—';
+  const start = item.startTime
+    ? new Date(item.startTime).toLocaleString('en-IN')
+    : '—';
   const sc = statusColor(item.status);
   const sb = statusBg(item.status);
 
-  const submitted = item.attemptStatus === 'submitted' || item.attemptStatus === 'auto_submitted';
+  const submitted =
+    item.attemptStatus === 'submitted' ||
+    item.attemptStatus === 'auto_submitted';
   const inProgress = item.attemptStatus === 'in_progress';
 
   return (
@@ -53,51 +64,87 @@ function StudentExamCard({ item, onPress }) {
       onPress={onPress}
     >
       <View style={styles.sCardTop}>
-        <View style={[styles.sCardIconCircle, { backgroundColor: colors.iconBgPurple }]}>
+        <View
+          style={[
+            styles.sCardIconCircle,
+            { backgroundColor: colors.iconBgPurple },
+          ]}
+        >
           <Text style={{ fontSize: 20 }}>📋</Text>
         </View>
         <View style={styles.sCardBody}>
-          <Text style={styles.sCardName} numberOfLines={2}>{item.name}</Text>
-          <Text style={styles.sCardMeta}>{item.batchId?.name} · {item.subjectId?.name}</Text>
+          <Text style={styles.sCardName} numberOfLines={2}>
+            {item.name}
+          </Text>
+          <Text style={styles.sCardMeta}>
+            {item.batchId?.name} · {item.subjectId?.name}
+          </Text>
         </View>
         <View style={styles.sBadgeCol}>
           <View style={[styles.sBadge, { backgroundColor: sb }]}>
-            <Text style={[styles.sBadgeText, { color: sc }]}>{item.status?.toUpperCase()}</Text>
+            <Text style={[styles.sBadgeText, { color: sc }]}>
+              {item.status?.toUpperCase()}
+            </Text>
           </View>
           {submitted && (
             <View style={[styles.sBadge, { backgroundColor: '#DCFCE7' }]}>
-              <Text style={[styles.sBadgeText, { color: colors.dashUp }]}>✓ SUBMITTED</Text>
+              <Text style={[styles.sBadgeText, { color: colors.dashUp }]}>
+                ✓ SUBMITTED
+              </Text>
             </View>
           )}
           {inProgress && (
             <View style={[styles.sBadge, { backgroundColor: '#FEF3C7' }]}>
-              <Text style={[styles.sBadgeText, { color: '#D97706' }]}>IN PROGRESS</Text>
+              <Text style={[styles.sBadgeText, { color: '#D97706' }]}>
+                IN PROGRESS
+              </Text>
             </View>
           )}
         </View>
       </View>
       <View style={styles.sCardFooter}>
         <Text style={styles.sCardFooterText}>📅 {start}</Text>
-        <Text style={styles.sCardFooterText}>⏱ {item.durationMinutes} min · {item.totalMarks} marks</Text>
+        <Text style={styles.sCardFooterText}>
+          ⏱ {item.durationMinutes} min · {item.totalMarks} marks
+        </Text>
       </View>
     </Pressable>
   );
 }
 
 // ── Admin/Teacher exam card ──────────────────────────────────────────────────────
-function AdminExamItem({ item, role, onPress, onPublish, onDelete, onReplica }) {
-  const start = item.startTime ? new Date(item.startTime).toLocaleString() : '—';
+function AdminExamItem({
+  item,
+  role,
+  onPress,
+  onPublish,
+  onDelete,
+  onReplica,
+  onDownload,
+  onShare,
+  busyAction,
+}) {
+  const start = item.startTime
+    ? new Date(item.startTime).toLocaleString()
+    : '—';
+  const published = item.status === 'published';
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.card}>
       <View style={styles.cardTop}>
-        <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.cardName} numberOfLines={2}>
+          {item.name}
+        </Text>
         <Text style={[styles.badge, { color: statusColor(item.status) }]}>
           {item.status?.toUpperCase()}
         </Text>
       </View>
-      <Text style={styles.cardMeta}>{item.batchId?.name} · {item.subjectId?.name}</Text>
+      <Text style={styles.cardMeta}>
+        {item.batchId?.name} · {item.subjectId?.name}
+      </Text>
       <Text style={styles.cardMeta}>{start}</Text>
-      <Text style={styles.cardMeta}>{item.durationMinutes} min · {item.totalMarks} marks</Text>
+      <Text style={styles.cardMeta}>
+        {item.durationMinutes} min · {item.totalMarks} marks
+      </Text>
       {role === 'admin' && (
         <View style={styles.actions}>
           <Pressable accessibilityRole="button" onPress={onReplica}>
@@ -113,6 +160,37 @@ function AdminExamItem({ item, role, onPress, onPublish, onDelete, onReplica }) 
               <Text style={styles.actionDelete}>Delete</Text>
             </Pressable>
           )}
+          <Pressable
+            accessibilityRole="button"
+            disabled={!!busyAction}
+            onPress={(event) => {
+              event.stopPropagation();
+              onDownload();
+            }}
+          >
+            <Text
+              style={[
+                styles.actionDownload,
+                !published && styles.actionDisabled,
+              ]}
+            >
+              {busyAction === 'download' ? 'Downloading…' : 'Download'}
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            disabled={!!busyAction}
+            onPress={(event) => {
+              event.stopPropagation();
+              onShare();
+            }}
+          >
+            <Text
+              style={[styles.actionShare, !published && styles.actionDisabled]}
+            >
+              {busyAction === 'share' ? 'Preparing…' : 'Share'}
+            </Text>
+          </Pressable>
         </View>
       )}
     </Pressable>
@@ -120,15 +198,21 @@ function AdminExamItem({ item, role, onPress, onPublish, onDelete, onReplica }) 
 }
 
 export default function ExamListScreen({ navigation, route }) {
-  const role = route.params?.role ?? (
-    route.name === 'StudentExamList' ? 'student' :
-      route.name === 'TeacherExamList' ? 'teacher' :
-        route.name === 'AdminExamList' ? 'admin' : undefined
-  );
+  const { user } = useAuth();
+  const role =
+    route.params?.role ??
+    (route.name === 'StudentExamList'
+      ? 'student'
+      : route.name === 'TeacherExamList'
+        ? 'teacher'
+        : route.name === 'AdminExamList'
+          ? 'admin'
+          : undefined);
   const admin = role === 'admin';
   const isStudent = role === 'student';
   const [status, setStatus] = useState(undefined);
   const [replicatingExam, setReplicatingExam] = useState(null);
+  const [paperAction, setPaperAction] = useState(null);
   const query = useExams(role, { status });
   const publishMutation = usePublishExam();
   const deleteMutation = useDeleteExam();
@@ -146,25 +230,62 @@ export default function ExamListScreen({ navigation, route }) {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          try { await deleteMutation.mutateAsync(id); }
-          catch (e) { Alert.alert('Error', e.message); }
+          try {
+            await deleteMutation.mutateAsync(id);
+          } catch (e) {
+            Alert.alert('Error', e.message);
+          }
         },
       },
     ]);
   }
 
   async function handlePublish(id) {
-    try { await publishMutation.mutateAsync(id); }
-    catch (e) { Alert.alert('Publish failed', e.message); }
+    try {
+      await publishMutation.mutateAsync(id);
+    } catch (e) {
+      Alert.alert('Publish failed', e.message);
+    }
   }
 
   async function handleDuplicate(payload) {
     try {
-      await duplicateMutation.mutateAsync({ id: replicatingExam._id, body: payload });
+      await duplicateMutation.mutateAsync({
+        id: replicatingExam._id,
+        body: payload,
+      });
       setReplicatingExam(null);
       Alert.alert('Success', 'Exam duplicated successfully');
     } catch (e) {
       Alert.alert('Error', e.message || 'Failed to duplicate exam');
+    }
+  }
+
+  async function handlePaperAction(exam, action) {
+    if (paperAction) return;
+    setPaperAction({ id: exam._id, action });
+    try {
+      const result =
+        action === 'download'
+          ? await saveExamPaper(exam._id, user?.instituteName)
+          : await shareExamPaper(exam._id, user?.instituteName);
+      if (action === 'download' && !result.cancelled) {
+        Alert.alert(
+          'Download complete',
+          `${result.filename} was saved successfully.`,
+        );
+      }
+    } catch (e) {
+      if (e.code === 'EXAM_NOT_PUBLISHED') {
+        Alert.alert('Exam not published', e.message);
+      } else {
+        Alert.alert(
+          action === 'download' ? 'Download failed' : 'Share failed',
+          e.message || 'Could not prepare the exam paper.',
+        );
+      }
+    } finally {
+      setPaperAction(null);
     }
   }
 
@@ -180,26 +301,43 @@ export default function ExamListScreen({ navigation, route }) {
         <View style={styles.body}>
           {query.isPending ? <Loader message="Loading exams…" /> : null}
           {query.error ? (
-            <ErrorState message={query.error.message} onRetry={query.refetch} retrying={query.isFetching} />
+            <ErrorState
+              message={query.error.message}
+              onRetry={query.refetch}
+              retrying={query.isFetching}
+            />
           ) : null}
           {!query.isPending && !query.error ? (
             <FlashList
               data={items}
               estimatedItemSize={120}
               keyExtractor={(item) => item._id}
-              ListEmptyComponent={<EmptyState title="No exams" message="No exams available yet." />}
-              ListFooterComponent={
-                query.isFetchingNextPage
-                  ? <ActivityIndicator color={colors.dashGreen} style={{ paddingVertical: 20 }} />
-                  : null
+              ListEmptyComponent={
+                <EmptyState
+                  title="No exams"
+                  message="No exams available yet."
+                />
               }
-              onEndReached={() => { if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage(); }}
+              ListFooterComponent={
+                query.isFetchingNextPage ? (
+                  <ActivityIndicator
+                    color={colors.dashGreen}
+                    style={{ paddingVertical: 20 }}
+                  />
+                ) : null
+              }
+              onEndReached={() => {
+                if (query.hasNextPage && !query.isFetchingNextPage)
+                  query.fetchNextPage();
+              }}
               onEndReachedThreshold={0.4}
               contentContainerStyle={styles.listContent}
               renderItem={({ item }) => (
                 <StudentExamCard
                   item={item}
-                  onPress={() => navigation.navigate('ExamDetail', { role, id: item._id })}
+                  onPress={() =>
+                    navigation.navigate('ExamDetail', { role, id: item._id })
+                  }
                 />
               )}
             />
@@ -210,8 +348,22 @@ export default function ExamListScreen({ navigation, route }) {
   }
 
   // ── Admin / Teacher layout ──────────────────────────────────────────────
-  if (query.isPending) return <Screen><Loader message="Loading exams…" /></Screen>;
-  if (query.error) return <Screen><ErrorState message={query.error.message} onRetry={query.refetch} retrying={query.isFetching} /></Screen>;
+  if (query.isPending)
+    return (
+      <Screen>
+        <Loader message="Loading exams…" />
+      </Screen>
+    );
+  if (query.error)
+    return (
+      <Screen>
+        <ErrorState
+          message={query.error.message}
+          onRetry={query.refetch}
+          retrying={query.isFetching}
+        />
+      </Screen>
+    );
 
   return (
     <Screen>
@@ -219,9 +371,15 @@ export default function ExamListScreen({ navigation, route }) {
       <View style={styles.container}>
         <AdminHeader
           actionLabel={admin ? 'Create exam' : undefined}
-          onAction={admin ? () => navigation.navigate('ExamForm', { role }) : undefined}
+          onAction={
+            admin ? () => navigation.navigate('ExamForm', { role }) : undefined
+          }
           onBack={navigation.goBack}
-          subtitle={admin ? 'Create, publish and manage exams.' : 'View your assigned exams.'}
+          subtitle={
+            admin
+              ? 'Create, publish and manage exams.'
+              : 'View your assigned exams.'
+          }
           title="Exams"
         />
         {admin && (
@@ -236,7 +394,9 @@ export default function ExamListScreen({ navigation, route }) {
                   onPress={() => setStatus(f.value)}
                   style={[styles.filter, sel && styles.filterSel]}
                 >
-                  <Text style={[styles.filterTxt, sel && styles.filterTxtSel]}>{f.label}</Text>
+                  <Text style={[styles.filterTxt, sel && styles.filterTxtSel]}>
+                    {f.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -248,25 +408,39 @@ export default function ExamListScreen({ navigation, route }) {
           keyExtractor={(item) => item._id}
           ListEmptyComponent={
             <EmptyState
-              message={admin ? 'Create the first exam to get started.' : 'No exams available yet.'}
+              message={
+                admin
+                  ? 'Create the first exam to get started.'
+                  : 'No exams available yet.'
+              }
               title="No exams"
             />
           }
           ListFooterComponent={
-            query.isFetchingNextPage
-              ? <ActivityIndicator color={colors.primary} style={styles.footer} />
-              : null
+            query.isFetchingNextPage ? (
+              <ActivityIndicator color={colors.primary} style={styles.footer} />
+            ) : null
           }
-          onEndReached={() => { if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage(); }}
+          onEndReached={() => {
+            if (query.hasNextPage && !query.isFetchingNextPage)
+              query.fetchNextPage();
+          }}
           onEndReachedThreshold={0.4}
           renderItem={({ item }) => (
             <AdminExamItem
               item={item}
               role={role}
               onDelete={() => confirmDelete(item._id)}
-              onPress={() => navigation.navigate('ExamDetail', { role, id: item._id })}
+              onPress={() =>
+                navigation.navigate('ExamDetail', { role, id: item._id })
+              }
               onPublish={() => handlePublish(item._id)}
               onReplica={() => setReplicatingExam(item)}
+              onDownload={() => handlePaperAction(item, 'download')}
+              onShare={() => handlePaperAction(item, 'share')}
+              busyAction={
+                paperAction?.id === item._id ? paperAction.action : null
+              }
             />
           )}
         />
@@ -304,7 +478,13 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   sCardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  sCardIconCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  sCardIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sCardBody: { flex: 1, gap: 3 },
   sCardName: { fontSize: 14, fontWeight: '800', color: colors.dashText },
   sCardMeta: { fontSize: 12, color: colors.dashSubText },
@@ -317,18 +497,48 @@ const styles = StyleSheet.create({
   // Admin/Teacher layout
   container: { flex: 1, gap: 16 },
   filters: { flexDirection: 'row', gap: 8 },
-  filter: { backgroundColor: colors.white, borderColor: colors.border, borderRadius: 16, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 7 },
+  filter: {
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
   filterSel: { backgroundColor: colors.black, borderColor: colors.black },
   filterTxt: { color: colors.mutedText, fontSize: 12, fontWeight: '700' },
   filterTxtSel: { color: colors.white },
-  card: { backgroundColor: colors.white, borderColor: colors.border, borderRadius: 16, borderWidth: 1, gap: 6, marginBottom: 12, padding: 16 },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
+  card: {
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 6,
+    marginBottom: 12,
+    padding: 16,
+  },
+  cardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
   cardName: { color: colors.black, flex: 1, fontSize: 16, fontWeight: '800' },
   badge: { fontSize: 11, fontWeight: '900', letterSpacing: 0.5 },
   cardMeta: { color: colors.mutedText, fontSize: 13 },
-  actions: { borderTopColor: colors.border, borderTopWidth: 1, flexDirection: 'row', gap: 20, paddingTop: 10, marginTop: 4 },
+  actions: {
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: 20,
+    paddingTop: 10,
+    marginTop: 4,
+  },
   actionReplica: { color: colors.primary, fontSize: 13, fontWeight: '800' },
   actionPublish: { color: colors.primary, fontSize: 13, fontWeight: '800' },
   actionDelete: { color: colors.error, fontSize: 13, fontWeight: '800' },
+  actionDownload: { color: colors.primary, fontSize: 13, fontWeight: '800' },
+  actionShare: { color: colors.black, fontSize: 13, fontWeight: '800' },
+  actionDisabled: { color: colors.mutedText },
   footer: { paddingVertical: 20 },
 });

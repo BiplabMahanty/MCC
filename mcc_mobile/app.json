@@ -27,7 +27,8 @@
         {
           "photosPermission": "Allow Coaching Management System to select question images and diagrams."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "web": {
       "favicon": "./assets/mahapatraCoaching.jpeg"
