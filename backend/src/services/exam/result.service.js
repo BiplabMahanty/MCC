@@ -185,8 +185,13 @@ async function getAttemptReview(studentId, instituteId, examId) {
     answerMap[a.questionIndex] = a.selectedOptionIndex;
   }
 
+  // Answers are stored by the question's shuffled position, while the exam
+  // questions loaded here are in their original order.
+  const shuffleMap = attempt.questionShuffleMap ?? [];
+
   const questions = exam.questions.map((q, i) => {
-    const selected = answerMap[i] ?? null;
+    const shuffledIndex = shuffleMap.length > 0 ? shuffleMap.indexOf(i) : i;
+    const selected = answerMap[shuffledIndex] ?? null;
     const correct = q.correctOptionIndex;
     let verdict = 'unanswered';
     if (selected !== null) {

@@ -1,4 +1,11 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import colors from '../../../theme/colors';
 
@@ -13,6 +20,10 @@ export default function FilterBar({
   onSearchChange,
   isActive,
   onActiveChange,
+  batchId,
+  batches = [],
+  onBatchChange,
+  showBatch = false,
   showStatus = true,
 }) {
   return (
@@ -28,7 +39,11 @@ export default function FilterBar({
         value={search}
       />
       {showStatus ? (
-        <View style={styles.filters}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filters}
+        >
           {filters.map((filter) => {
             const selected = isActive === filter.value;
             return (
@@ -50,7 +65,38 @@ export default function FilterBar({
               </Pressable>
             );
           })}
-        </View>
+        </ScrollView>
+      ) : null}
+      {showBatch ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filters}
+        >
+          {[{ _id: undefined, name: 'All batches' }, ...batches].map(
+            (batch) => {
+              const selected = batchId === batch._id;
+              return (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  key={batch._id || 'all-batches'}
+                  onPress={() => onBatchChange(batch._id)}
+                  style={[styles.filter, selected && styles.filterSelected]}
+                >
+                  <Text
+                    style={[
+                      styles.filterText,
+                      selected && styles.filterTextSelected,
+                    ]}
+                  >
+                    {batch.name}
+                  </Text>
+                </Pressable>
+              );
+            },
+          )}
+        </ScrollView>
       ) : null}
     </View>
   );

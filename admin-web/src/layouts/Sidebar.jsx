@@ -24,7 +24,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
 
       <aside
         className={cn(
-          'fixed top-0 left-0 z-40 h-screen bg-brand flex flex-col transition-all duration-200',
+          'fixed top-0 left-0 z-40 h-screen bg-gradient-to-b from-brand-dark via-brand to-[#155331] flex flex-col transition-all duration-200 shadow-xl shadow-brand/10',
           collapsed ? 'w-16' : 'w-60',
           // Mobile: slide in/out
           'lg:translate-x-0',

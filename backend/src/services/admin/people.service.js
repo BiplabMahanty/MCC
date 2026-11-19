@@ -40,13 +40,16 @@ function createPeopleService({
 const selection = `name email phone role instituteId isActive ${profileKey} createdAt updatedAt`;
 
   async function list(instituteId, query) {
-    const { page, limit, search, isActive } = query;
+    const { page, limit, search, isActive, batchId } = query;
     const { skip } = paginationWindow(page, limit);
     const filter = {
       instituteId,
       role,
       isDeleted: false,
       ...(isActive !== undefined && { isActive }),
+      ...(profileKey === 'studentProfile' && batchId && {
+        'studentProfile.batchId': batchId,
+      }),
       ...searchFilter(search, searchFields),
     };
 

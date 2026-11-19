@@ -95,7 +95,6 @@ export default function StudentBatchScreen({ navigation }) {
               <InfoRow label="Academic Session" value={batch.academicSession} />
               <InfoRow label="Start Date" value={dateValue(batch.startDate)} />
               <InfoRow label="End Date" value={dateValue(batch.endDate)} />
-              <InfoRow label="Capacity" value={batch.capacity ? String(batch.capacity) : null} />
             </DetailCard>
           </>
         ) : null}

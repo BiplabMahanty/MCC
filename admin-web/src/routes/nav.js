@@ -8,7 +8,6 @@ import {
   BookMarked,
   ClipboardCheck,
   FileText,
-  DollarSign,
   CalendarDays,
   ClipboardList,
   Bell,
@@ -50,7 +49,6 @@ export const NAV = [
   {
     section: 'Operations',
     items: [
-      { label: 'Fees', path: '/fees', icon: DollarSign },
       { label: 'Schedule', path: '/schedule', icon: CalendarDays },
       { label: 'Attendance', path: '/attendance', icon: ClipboardList },
       { label: 'Notifications', path: '/notifications', icon: Bell },

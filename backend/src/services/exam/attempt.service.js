@@ -9,6 +9,7 @@ const {
 } = require('../../queues/examQueue');
 const { evaluate } = require('./evaluation.service');
 const { createOrUpdateResult } = require('./result.service');
+const { generateShuffleMap, mapShuffledToOriginal } = require('../../utils/shuffleQuestions');
 
 async function getPublishedExam(examId, instituteId) {
   const exam = await Exam.findOne({
@@ -84,6 +85,7 @@ async function startAttempt(studentId, instituteId, examId) {
     studentId,
     startedAt: now,
     expiresAt,
+    questionShuffleMap: generateShuffleMap(exam.questions.length, String(studentId), String(examId)),
     answers: [],
   });
 
@@ -118,6 +120,12 @@ function buildAttemptResponse(exam, attempt) {
     return copy;
   });
 
+  // Shuffle questions based on stored shuffle map
+  let shuffledQuestions = questions;
+  if (attempt.questionShuffleMap && attempt.questionShuffleMap.length > 0) {
+    shuffledQuestions = attempt.questionShuffleMap.map((originalIndex) => questions[originalIndex]);
+  }
+
   return {
     attempt: attempt.toJSON ? attempt.toJSON() : attempt,
     exam: {
@@ -131,7 +139,7 @@ function buildAttemptResponse(exam, attempt) {
       instructions: exam.instructions,
       startTime: exam.startTime,
       endTime: exam.endTime,
-      questions,
+      questions: shuffledQuestions,
     },
     serverTime: new Date().toISOString(),
   };
@@ -182,7 +190,7 @@ async function submitAttempt(studentId, examId, isAuto = false) {
 
   if (!exam) throw new AppError('Exam not found.', 404, 'NOT_FOUND');
 
-  const scores = evaluate(exam, attempt.answers);
+  const scores = evaluate(exam, attempt.answers, attempt.questionShuffleMap);
 
   attempt.status = isAuto ? 'auto_submitted' : 'submitted';
   attempt.submittedAt = new Date();

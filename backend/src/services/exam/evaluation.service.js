@@ -1,8 +1,9 @@
 /**
  * Evaluates a submitted attempt against the exam's snapshotted correct answers.
  * Returns score fields to be saved on the ExamAttempt document.
+ * Uses shuffle map to map shuffled positions back to original question indices.
  */
-function evaluate(exam, answers) {
+function evaluate(exam, answers, shuffleMap = []) {
   const totalQuestions = exam.questions.length;
   let correct = 0;
   let wrong = 0;
@@ -15,7 +16,9 @@ function evaluate(exam, answers) {
     if (selected === null) continue;
 
     attempted++;
-    const correctIndex = exam.questions[i].correctOptionIndex;
+    // Map shuffled position to original question index
+    const originalIndex = shuffleMap && shuffleMap.length > 0 ? shuffleMap[i] : i;
+    const correctIndex = exam.questions[originalIndex].correctOptionIndex;
 
     if (selected === correctIndex) {
       correct++;

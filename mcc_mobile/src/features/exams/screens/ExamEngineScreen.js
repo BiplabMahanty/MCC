@@ -190,6 +190,9 @@ export default function ExamEngineScreen({ navigation, route }) {
     );
 
   const { exam, attempt } = data;
+  // The attempt API already returns questions in the stored shuffled order.
+  // Do not shuffle them again or the selected option can be graded against a
+  // different question after navigating through the palette.
   const questions = exam.questions ?? [];
   const total = questions.length;
   const question = questions[currentIndex];

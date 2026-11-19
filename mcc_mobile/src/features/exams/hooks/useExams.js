@@ -73,7 +73,11 @@ export function usePublishExam() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: publishExam,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['exams'] }),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ['exams'] }),
+        qc.invalidateQueries({ queryKey: ['exam'] }),
+      ]),
   });
 }
 
@@ -81,7 +85,11 @@ export function useUnpublishExam() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: unpublishExam,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['exams'] }),
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: ['exams'] }),
+        qc.invalidateQueries({ queryKey: ['exam'] }),
+      ]),
   });
 }
 

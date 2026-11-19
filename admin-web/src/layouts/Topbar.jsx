@@ -26,7 +26,7 @@ export default function Topbar({ onMenuClick }) {
   ];
 
   return (
-    <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4 gap-4 shrink-0">
+    <header className="h-16 bg-card/95 backdrop-blur border-b border-border flex items-center justify-between px-4 md:px-6 gap-4 shrink-0">
       <div className="flex items-center gap-3 min-w-0">
         {/* Mobile hamburger */}
         <button

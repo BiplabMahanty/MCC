@@ -17,6 +17,7 @@ import AppInput from '../../../components/common/AppInput';
 import ErrorState from '../../../components/common/ErrorState';
 import Loader from '../../../components/common/Loader';
 import Screen from '../../../components/common/Screen';
+import TimePicker from '../../../components/common/TimePicker';
 import colors from '../../../theme/colors';
 import AdminHeader from '../../admin/components/AdminHeader';
 import RelationSelectField from '../../admin/components/RelationSelectField';
@@ -33,8 +34,10 @@ function validate(v) {
   if (!v.subjectId) errors.subjectId = 'Subject is required.';
   if (!v.teacherId) errors.teacherId = 'Teacher is required.';
   if (v.dayOfWeek === null) errors.dayOfWeek = 'Select a day.';
-  if (!TIME_RE.test(v.startTime)) errors.startTime = 'Use HH:MM format (e.g. 09:00).';
-  if (!TIME_RE.test(v.endTime)) errors.endTime = 'Use HH:MM format (e.g. 10:30).';
+  if (!TIME_RE.test(v.startTime))
+    errors.startTime = 'Use HH:MM format (e.g. 09:00).';
+  if (!TIME_RE.test(v.endTime))
+    errors.endTime = 'Use HH:MM format (e.g. 10:30).';
   if (!errors.startTime && !errors.endTime && v.startTime >= v.endTime)
     errors.endTime = 'End time must be after start time.';
   return errors;
@@ -46,7 +49,9 @@ function DayPill({ label, selected, onPress }) {
       style={[styles.dayPill, selected && styles.dayPillSelected]}
       onPress={onPress}
     >
-      <Text style={[styles.dayPillText, selected && styles.dayPillTextSelected]}>
+      <Text
+        style={[styles.dayPillText, selected && styles.dayPillTextSelected]}
+      >
         {label}
       </Text>
     </Pressable>
@@ -78,7 +83,10 @@ function FormBody({ record, id, navigation }) {
 
   async function submit() {
     const errs = validate(values);
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
     try {
       await saveMutation.mutateAsync({
         batchId: values.batchId,
@@ -93,7 +101,9 @@ function FormBody({ record, id, navigation }) {
       navigation.goBack();
     } catch (e) {
       if (Array.isArray(e.details)) {
-        setErrors(Object.fromEntries(e.details.map((d) => [d.field, d.message])));
+        setErrors(
+          Object.fromEntries(e.details.map((d) => [d.field, d.message])),
+        );
       } else {
         Alert.alert('Error', e.message);
       }
@@ -154,35 +164,27 @@ function FormBody({ record, id, navigation }) {
                 />
               ))}
             </View>
-            {errors.dayOfWeek ? <Text style={styles.fieldError}>{errors.dayOfWeek}</Text> : null}
+            {errors.dayOfWeek ? (
+              <Text style={styles.fieldError}>{errors.dayOfWeek}</Text>
+            ) : null}
           </View>
 
           {/* Time row */}
           <View style={styles.timeRow}>
             <View style={styles.timeField}>
-              <AppInput
+              <TimePicker
                 label="Start Time *"
-                placeholder="09:00"
                 value={values.startTime}
-                onChangeText={(v) => set('startTime', v)}
+                onChange={(v) => set('startTime', v)}
                 error={errors.startTime}
-                autoCapitalize="none"
-                autoCorrect={false}
-                inputMode="numeric"
-                maxLength={5}
               />
             </View>
             <View style={styles.timeField}>
-              <AppInput
+              <TimePicker
                 label="End Time *"
-                placeholder="10:30"
                 value={values.endTime}
-                onChangeText={(v) => set('endTime', v)}
+                onChange={(v) => set('endTime', v)}
                 error={errors.endTime}
-                autoCapitalize="none"
-                autoCorrect={false}
-                inputMode="numeric"
-                maxLength={5}
               />
             </View>
           </View>
@@ -200,7 +202,9 @@ function FormBody({ record, id, navigation }) {
           <View style={styles.switchRow}>
             <View style={styles.switchCopy}>
               <Text style={styles.switchLabel}>Active</Text>
-              <Text style={styles.switchHint}>Inactive slots are hidden from teachers and students.</Text>
+              <Text style={styles.switchHint}>
+                Inactive slots are hidden from teachers and students.
+              </Text>
             </View>
             <Switch
               value={values.isActive}
@@ -216,7 +220,13 @@ function FormBody({ record, id, navigation }) {
         ) : null}
 
         <AppButton
-          label={saveMutation.isPending ? 'Saving…' : id ? 'Save Changes' : 'Save Schedule'}
+          label={
+            saveMutation.isPending
+              ? 'Saving…'
+              : id
+                ? 'Save Changes'
+                : 'Save Schedule'
+          }
           disabled={saveMutation.isPending}
           onPress={submit}
         />
@@ -230,7 +240,11 @@ export default function ScheduleFormScreen({ navigation, route }) {
   const scheduleQuery = useSchedule(id);
 
   if (id && scheduleQuery.isPending) {
-    return <Screen><Loader message="Loading slot…" /></Screen>;
+    return (
+      <Screen>
+        <Loader message="Loading slot…" />
+      </Screen>
+    );
   }
 
   if (id && scheduleQuery.error) {
@@ -275,7 +289,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  dayPillSelected: { backgroundColor: colors.dashGreen, borderColor: colors.dashGreen },
+  dayPillSelected: {
+    backgroundColor: colors.dashGreen,
+    borderColor: colors.dashGreen,
+  },
   dayPillText: { fontSize: 13, fontWeight: '700', color: colors.mutedText },
   dayPillTextSelected: { color: colors.white },
 

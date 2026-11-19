@@ -15,6 +15,7 @@ import TeacherListItem from '../components/TeacherListItem';
 import TeacherModuleHeader from '../components/TeacherModuleHeader';
 import entityConfigs from '../config/entityConfigs';
 import {
+  useAdminOptions,
   useAdminEntities,
   useDeleteAdminEntity,
 } from '../hooks/useAdminEntities';
@@ -25,10 +26,16 @@ export default function EntityListScreen({ navigation, route }) {
   const config = entityConfigs[entityType];
   const [search, setSearch] = useState('');
   const [isActive, setIsActive] = useState(undefined);
+  const [batchId, setBatchId] = useState(undefined);
   const debouncedSearch = useDebouncedValue(search.trim());
+  const isStudentModule = entityType === 'students';
+  const batchesQuery = useAdminOptions('batches', isStudentModule, {
+    isActive: undefined,
+  });
   const query = useAdminEntities(entityType, {
     search: debouncedSearch,
     isActive,
+    batchId: isStudentModule ? batchId : undefined,
   });
   const deleteMutation = useDeleteAdminEntity(entityType);
   const items = useMemo(
@@ -59,7 +66,7 @@ export default function EntityListScreen({ navigation, route }) {
     );
   }
 
-  if (query.isPending) {
+  if (query.isPending && !query.data) {
     return (
       <Screen>
         <Loader message={`Loading ${config.plural.toLowerCase()}…`} />
@@ -92,7 +99,9 @@ export default function EntityListScreen({ navigation, route }) {
         ) : (
           <AdminHeader
             actionLabel={`Add ${config.singular}`}
-            onAction={() => navigation.navigate('AdminEntityForm', { entityType })}
+            onAction={() =>
+              navigation.navigate('AdminEntityForm', { entityType })
+            }
             onBack={navigation.goBack}
             subtitle="Search, filter, create, edit, or soft-delete records."
             title={config.plural}
@@ -101,12 +110,18 @@ export default function EntityListScreen({ navigation, route }) {
         <FilterBar
           isActive={isActive}
           onActiveChange={setIsActive}
+          batchId={batchId}
+          batches={batchesQuery.data?.data || []}
+          onBatchChange={setBatchId}
           onSearchChange={setSearch}
           search={search}
+          showBatch={isStudentModule}
         />
         <FlashList
           contentContainerStyle={styles.listContent}
           data={items}
+          drawDistance={600}
+          estimatedItemSize={290}
           keyExtractor={(item) => item._id}
           ListEmptyComponent={
             <EmptyState
@@ -123,23 +138,34 @@ export default function EntityListScreen({ navigation, route }) {
             ) : null
           }
           onEndReached={() => {
-            if (query.hasNextPage && !query.isFetchingNextPage) {
+            if (
+              query.hasNextPage &&
+              !query.isFetchingNextPage &&
+              !query.isFetching
+            ) {
               query.fetchNextPage();
             }
           }}
           onEndReachedThreshold={0.4}
+          maintainVisibleContentPosition={{ disabled: false }}
           refreshing={query.isFetching && !query.isFetchingNextPage}
           onRefresh={query.refetch}
           renderItem={({ item }) => {
             const itemProps = {
               item,
               onDelete: () => confirmDelete(item),
-              onEdit: () => navigation.navigate('AdminEntityForm', { entityType, id: item._id }),
+              onEdit: () =>
+                navigation.navigate('AdminEntityForm', {
+                  entityType,
+                  id: item._id,
+                }),
             };
             return isTeacherModule ? (
               <TeacherListItem
                 {...itemProps}
-                onPress={() => navigation.navigate('TeacherDetail', { teacherId: item._id })}
+                onPress={() =>
+                  navigation.navigate('TeacherDetail', { teacherId: item._id })
+                }
               />
             ) : (
               <EntityListItem {...itemProps} subtitle={config.subtitle(item)} />

@@ -43,6 +43,7 @@ const examAttemptSchema = new mongoose.Schema(
       default: 'in_progress',
       index: true,
     },
+    questionShuffleMap: { type: [Number], default: [] },
     answers: { type: [answerSchema], default: [] },
     // Populated after submission
     totalQuestions: { type: Number, default: 0 },

@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -21,6 +22,7 @@ import {
   useDeleteExam,
   useExams,
   usePublishExam,
+  useUnpublishExam,
   useDuplicateExam,
 } from '../hooks/useExams';
 import ExamReplicaModal from '../components/ExamReplicaModal';
@@ -118,11 +120,14 @@ function AdminExamItem({
   role,
   onPress,
   onPublish,
+  onUnpublish,
   onDelete,
   onReplica,
   onDownload,
   onShare,
   busyAction,
+  publishPending,
+  unpublishPending,
 }) {
   const start = item.startTime
     ? new Date(item.startTime).toLocaleString()
@@ -151,8 +156,25 @@ function AdminExamItem({
             <Text style={styles.actionReplica}>Replica</Text>
           </Pressable>
           {item.status === 'draft' && (
-            <Pressable accessibilityRole="button" onPress={onPublish}>
-              <Text style={styles.actionPublish}>Publish</Text>
+            <Pressable
+              accessibilityRole="button"
+              disabled={publishPending}
+              onPress={onPublish}
+            >
+              <Text style={styles.actionPublish}>
+                {publishPending ? 'Publishing…' : 'Publish'}
+              </Text>
+            </Pressable>
+          )}
+          {item.status === 'published' && (
+            <Pressable
+              accessibilityRole="button"
+              disabled={unpublishPending}
+              onPress={onUnpublish}
+            >
+              <Text style={styles.actionUnpublish}>
+                {unpublishPending ? 'Unpublishing…' : 'Unpublish'}
+              </Text>
             </Pressable>
           )}
           {item.status === 'draft' && (
@@ -213,8 +235,11 @@ export default function ExamListScreen({ navigation, route }) {
   const [status, setStatus] = useState(undefined);
   const [replicatingExam, setReplicatingExam] = useState(null);
   const [paperAction, setPaperAction] = useState(null);
+  const [publishingExamId, setPublishingExamId] = useState(null);
+  const [unpublishingExamId, setUnpublishingExamId] = useState(null);
   const query = useExams(role, { status });
   const publishMutation = usePublishExam();
+  const unpublishMutation = useUnpublishExam();
   const deleteMutation = useDeleteExam();
   const duplicateMutation = useDuplicateExam();
 
@@ -241,10 +266,24 @@ export default function ExamListScreen({ navigation, route }) {
   }
 
   async function handlePublish(id) {
+    setPublishingExamId(id);
     try {
       await publishMutation.mutateAsync(id);
     } catch (e) {
       Alert.alert('Publish failed', e.message);
+    } finally {
+      setPublishingExamId(null);
+    }
+  }
+
+  async function handleUnpublish(id) {
+    setUnpublishingExamId(id);
+    try {
+      await unpublishMutation.mutateAsync(id);
+    } catch (e) {
+      Alert.alert('Unpublish failed', e.message);
+    } finally {
+      setUnpublishingExamId(null);
     }
   }
 
@@ -332,6 +371,13 @@ export default function ExamListScreen({ navigation, route }) {
               }}
               onEndReachedThreshold={0.4}
               contentContainerStyle={styles.listContent}
+              refreshControl={
+                <RefreshControl
+                  refreshing={query.isRefetching}
+                  onRefresh={query.refetch}
+                  colors={[colors.dashGreen]}
+                />
+              }
               renderItem={({ item }) => (
                 <StudentExamCard
                   item={item}
@@ -435,12 +481,15 @@ export default function ExamListScreen({ navigation, route }) {
                 navigation.navigate('ExamDetail', { role, id: item._id })
               }
               onPublish={() => handlePublish(item._id)}
+              onUnpublish={() => handleUnpublish(item._id)}
               onReplica={() => setReplicatingExam(item)}
               onDownload={() => handlePaperAction(item, 'download')}
               onShare={() => handlePaperAction(item, 'share')}
               busyAction={
                 paperAction?.id === item._id ? paperAction.action : null
               }
+              publishPending={publishingExamId === item._id}
+              unpublishPending={unpublishingExamId === item._id}
             />
           )}
         />
@@ -536,6 +585,7 @@ const styles = StyleSheet.create({
   },
   actionReplica: { color: colors.primary, fontSize: 13, fontWeight: '800' },
   actionPublish: { color: colors.primary, fontSize: 13, fontWeight: '800' },
+  actionUnpublish: { color: colors.warning, fontSize: 13, fontWeight: '800' },
   actionDelete: { color: colors.error, fontSize: 13, fontWeight: '800' },
   actionDownload: { color: colors.primary, fontSize: 13, fontWeight: '800' },
   actionShare: { color: colors.black, fontSize: 13, fontWeight: '800' },

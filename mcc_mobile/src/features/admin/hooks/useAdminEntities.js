@@ -1,5 +1,6 @@
 import {
   useInfiniteQuery,
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -15,19 +16,22 @@ import {
 
 const PAGE_SIZE = 20;
 
-export function useAdminOptions(entityType, enabled = true) {
+export function useAdminOptions(entityType, enabled = true, options = {}) {
+  const { isActive = true } = options;
+
   return useQuery({
-    queryKey: ['admin', `${entityType}-options`],
+    queryKey: ['admin', `${entityType}-options`, { isActive }],
     queryFn: ({ signal }) =>
-      listEntities(entityType, { page: 1, limit: 100, isActive: true }, signal),
+      listEntities(entityType, { page: 1, limit: 100, isActive }, signal),
     enabled,
     staleTime: 60_000,
   });
 }
 
-export function useAdminEntities(entityType, { search, isActive }) {
+export function useAdminEntities(entityType, { search, isActive, batchId }) {
   return useInfiniteQuery({
-    queryKey: ['admin', entityType, { search, isActive }],
+    queryKey: ['admin', entityType, { search, isActive, batchId }],
+    placeholderData: keepPreviousData,
     initialPageParam: 1,
     queryFn: ({ pageParam, signal }) =>
       listEntities(
@@ -37,6 +41,7 @@ export function useAdminEntities(entityType, { search, isActive }) {
           limit: PAGE_SIZE,
           search,
           isActive,
+          batchId,
         },
         signal,
       ),
