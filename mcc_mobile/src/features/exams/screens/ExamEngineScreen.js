@@ -103,9 +103,13 @@ export default function ExamEngineScreen({ navigation, route }) {
   }
 
   function handleSelectOption(optionIndex) {
+    const existing = answers.find((a) => a.questionIndex === currentIndex);
+    const selectedOptionIndex =
+      existing?.selectedOptionIndex === optionIndex ? null : optionIndex;
+
     updateAnswer({
       questionIndex: currentIndex,
-      selectedOptionIndex: optionIndex,
+      selectedOptionIndex,
       visited: true,
     });
   }

@@ -50,6 +50,8 @@ export default function QuestionFormPage() {
   const { data: existing } = useQuestion(isEdit ? id : null);
 
   const [subjectId, setSubjectId] = useState('');
+  const [chapterId, setChapterId] = useState('');
+  const { data: chapters = [] } = useQuery({ queryKey: ['chapters-select', subjectId], queryFn: () => client.get('/admin/chapters', { params: { isActive: true, limit: 100, subjectId } }).then((r) => r.data.data), enabled: !!subjectId, staleTime: 60_000 });
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('easy');
   const [isActive, setIsActive] = useState(true);
@@ -65,6 +67,7 @@ export default function QuestionFormPage() {
   useEffect(() => {
     if (!existing) return;
     setSubjectId(existing.subjectId?._id ?? existing.subjectId ?? '');
+    setChapterId(existing.chapterId?._id ?? existing.chapterId ?? '');
     setTopic(existing.topic ?? '');
     setDifficulty(existing.difficulty ?? 'easy');
     setIsActive(existing.isActive ?? true);
@@ -100,7 +103,7 @@ export default function QuestionFormPage() {
 
     if (correctOptionIndex >= options.length) return toast.error('Correct answer index is out of range.');
 
-    const payload = { subjectId, topic: topic.trim(), difficulty, isActive, content, options, correctOptionIndex };
+    const payload = { subjectId, chapterId: chapterId || undefined, topic: topic.trim(), difficulty, isActive, content, options, correctOptionIndex };
 
     setSubmitting(true);
     try {
@@ -148,9 +151,10 @@ export default function QuestionFormPage() {
                   options={subjectOptions}
                   placeholder="Select subject"
                   value={subjectId}
-                  onChange={(e) => setSubjectId(e.target.value)}
+                  onChange={(e) => { setSubjectId(e.target.value); setChapterId(''); }}
                 />
               </div>
+              <Select label="Chapter" options={chapters.map((c) => ({ value: c._id, label: c.name }))} placeholder={subjectId ? 'Select chapter' : 'Select subject first'} value={chapterId} onChange={(e) => setChapterId(e.target.value)} />
               <Input label="Topic *" placeholder="Quadratic Equations" value={topic} onChange={(e) => setTopic(e.target.value)} />
               <Select
                 label="Difficulty *"

@@ -65,7 +65,7 @@ export default function ExamListPage() {
   const { data: subjects = [] } = useSubjectOptions();
 
   const params = {
-    page, limit: 20,
+    page, limit: 25,
     ...(status && { status }),
     ...(batchId && { batchId }),
     ...(subjectId && { subjectId }),
@@ -218,7 +218,7 @@ export default function ExamListPage() {
         <p className="text-sm text-text-muted">Unpublish <strong className="text-text-primary">{unpublishing?.name}</strong>? The question snapshot will be cleared and the exam returns to draft.</p>
       </Modal>
 
-      <ExamReplicaModal open={!!replicating} exam={replicating} onClose={() => setReplicating(null)} onSubmit={confirmDuplicate} loading={duplicateExam.isPending} />
+      <ExamReplicaModal open={!!replicating} exam={replicating} batches={batches} onClose={() => setReplicating(null)} onSubmit={confirmDuplicate} loading={duplicateExam.isPending} />
     </div>
   );
 }

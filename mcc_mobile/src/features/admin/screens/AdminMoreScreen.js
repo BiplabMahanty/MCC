@@ -9,6 +9,7 @@ const ITEMS = [
   { label: 'Courses', icon: '📚', route: 'AdminEntityList', params: { entityType: 'courses' } },
   { label: 'Batches', icon: '📅', route: 'AdminEntityList', params: { entityType: 'batches' } },
   { label: 'Subjects', icon: '📖', route: 'AdminEntityList', params: { entityType: 'subjects' } },
+  { label: 'Chapters', icon: '📑', route: 'AdminEntityList', params: { entityType: 'chapters' } },
   { label: 'Question Bank', icon: '❓', route: 'AdminQuestionBank', params: { role: 'admin' } },
   { label: 'Question Sets', icon: '📦', route: 'QuestionSetList', params: {} },
   { label: 'Exams', icon: '📝', route: 'AdminExamList', params: { role: 'admin' } },

@@ -26,13 +26,14 @@ function createAcademicCrudService({
   beforeRemove,
 }) {
   async function list(instituteId, query) {
-    const { page, limit, search, isActive, courseId } = query;
+    const { page, limit, search, isActive, courseId, subjectId } = query;
     const { skip } = paginationWindow(page, limit);
     const filter = {
       instituteId,
       isDeleted: false,
       ...(isActive !== undefined && { isActive }),
       ...(courseId && { courseId }),
+      ...(subjectId && { subjectId }),
       ...searchFilter(search, searchFields),
     };
     let findQuery = Model.find(filter)

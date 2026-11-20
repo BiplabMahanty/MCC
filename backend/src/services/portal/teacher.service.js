@@ -1,5 +1,6 @@
 const { ROLES } = require('../../constants/roles');
 const Batch = require('../../models/Batch');
+const Chapter = require('../../models/Chapter');
 const Question = require('../../models/Question');
 const Subject = require('../../models/Subject');
 const User = require('../../models/User');
@@ -53,6 +54,15 @@ async function getSubjects(userId, instituteId) {
     .select('-teacherIds -isDeleted -deletedAt -__v')
     .populate({ path: 'courseId', select: 'name code' })
     .sort({ name: 1 })
+    .lean();
+}
+
+async function getChapters(userId, instituteId) {
+  const subjectIds = await Subject.find({ instituteId, teacherIds: userId, isActive: true, isDeleted: false }).distinct('_id');
+  return Chapter.find({ instituteId, subjectId: { $in: subjectIds }, isActive: true, isDeleted: false })
+    .select('-isDeleted -deletedAt -__v')
+    .populate({ path: 'subjectId', select: 'name code' })
+    .sort({ subjectId: 1, sortOrder: 1, name: 1 })
     .lean();
 }
 
@@ -143,6 +153,7 @@ async function getSchedule(userId, instituteId) {
 
 module.exports = {
   getBatches,
+  getChapters,
   getDashboard,
   getProfile,
   getSchedule,

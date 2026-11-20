@@ -131,7 +131,6 @@ const entityConfigs = {
     fields: [
       { key: 'name', label: 'Subject name', required: true },
       { key: 'code', label: 'Subject code', required: true },
-      { key: 'courseId', label: 'Course', type: 'course', required: true },
       {
         key: 'teacherIds',
         label: 'Assigned teachers',
@@ -145,6 +144,19 @@ const entityConfigs = {
       const course = item.courseId?.name || 'No course';
       return `${item.code} · ${course}`;
     },
+  },
+  chapters: {
+    singular: 'Chapter',
+    plural: 'Chapters',
+    fields: [
+      { key: 'name', label: 'Chapter name', required: true },
+      { key: 'code', label: 'Chapter code' },
+      { key: 'subjectId', label: 'Subject', type: 'subject', required: true },
+      { key: 'sortOrder', label: 'Order', type: 'number', defaultValue: '0' },
+      { key: 'description', label: 'Description', multiline: true },
+      activeField,
+    ],
+    subtitle(item) { return `${item.code || ''} · ${item.subjectId?.name || 'No subject'}`; },
   },
 };
 

@@ -89,6 +89,7 @@ const option = z
 
 const questionFields = {
   subjectId: objectId,
+  chapterId: objectId.optional().nullable(),
   topic: z.string().trim().min(1).max(120),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   content: z.array(questionBlock).min(1).max(30),
@@ -111,6 +112,7 @@ const questionListQuerySchema = z
   .object({
     ...paginationFields,
     subjectId: objectId.optional(),
+    chapterId: objectId.optional(),
     topic: z.string().trim().max(120).optional(),
     difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
   })

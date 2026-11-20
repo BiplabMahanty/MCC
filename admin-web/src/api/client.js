@@ -55,8 +55,15 @@ client.interceptors.response.use(
       } catch (err) {
         processQueue(err, null);
         window.__accessToken = null;
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
+        const refreshCode = err.response?.data?.code || err.code;
+        const refreshTokenIsInvalid =
+          refreshCode === 'INVALID_REFRESH_TOKEN' ||
+          refreshCode === 'AUTHENTICATION_REQUIRED';
+
+        if (refreshTokenIsInvalid) {
+          localStorage.removeItem('refreshToken');
+          window.location.href = '/login';
+        }
         return Promise.reject(err);
       } finally {
         isRefreshing = false;

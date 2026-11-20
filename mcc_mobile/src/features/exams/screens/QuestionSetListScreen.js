@@ -13,21 +13,36 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AdminHeader from '../../admin/components/AdminHeader';
+import RelationSelectField from '../../admin/components/RelationSelectField';
+import { useAdminOptions } from '../../admin/hooks/useAdminEntities';
 import AppButton from '../../../components/common/AppButton';
 import EmptyState from '../../../components/common/EmptyState';
 import Loader from '../../../components/common/Loader';
 import Screen from '../../../components/common/Screen';
 import colors from '../../../theme/colors';
-import { useQuestionSetsList, useDeleteQuestionSet } from '../hooks/useQuestionSetsList';
+import {
+  useQuestionSetsList,
+  useDeleteQuestionSet,
+} from '../hooks/useQuestionSetsList';
 
 export default function QuestionSetListScreen({ navigation }) {
   const [search, setSearch] = useState('');
-  const query = useQuestionSetsList({ search: search || undefined });
+  const [subjectId, setSubjectId] = useState('');
+  const [chapterId, setChapterId] = useState('');
+  const subjectsQuery = useAdminOptions('subjects');
+  const chaptersQuery = useAdminOptions('chapters', true, {
+    subjectId: subjectId || undefined,
+  });
+  const query = useQuestionSetsList({
+    search: search || undefined,
+    subjectId: subjectId || undefined,
+    chapterId: chapterId || undefined,
+  });
   const deleteSet = useDeleteQuestionSet();
 
   const items = useMemo(
     () => query.data?.pages.flatMap((p) => p.data) ?? [],
-    [query.data]
+    [query.data],
   );
 
   function handleDelete(id, name) {
@@ -60,10 +75,7 @@ export default function QuestionSetListScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <StatusBar style="dark" />
       <View style={styles.container}>
-        <AdminHeader
-          title="Question Sets"
-          subtitle={`${items.length} sets`}
-        />
+        <AdminHeader title="Question Sets" subtitle={`${items.length} sets`} />
 
         <View style={styles.searchBox}>
           <Text style={styles.searchIcon}>🔍</Text>
@@ -76,15 +88,30 @@ export default function QuestionSetListScreen({ navigation }) {
           />
         </View>
 
+        <RelationSelectField
+          allowClear
+          label="Subject filter"
+          onChange={(value) => {
+            setSubjectId(value);
+            setChapterId('');
+          }}
+          options={subjectsQuery.data?.data || []}
+          value={subjectId}
+        />
+        <RelationSelectField
+          allowClear
+          label="Chapter filter"
+          onChange={setChapterId}
+          options={chaptersQuery.data?.data || []}
+          value={chapterId}
+        />
+
         <FlashList
           data={items}
           estimatedItemSize={100}
           keyExtractor={(item) => item._id}
           ListEmptyComponent={
-            <EmptyState
-              message="No question sets found."
-              title="No sets"
-            />
+            <EmptyState message="No question sets found." title="No sets" />
           }
           ListFooterComponent={
             query.isFetchingNextPage ? (
@@ -98,7 +125,10 @@ export default function QuestionSetListScreen({ navigation }) {
           onEndReachedThreshold={0.4}
           renderItem={({ item }) => (
             <Pressable
-              style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+              style={({ pressed }) => [
+                styles.card,
+                pressed && styles.cardPressed,
+              ]}
               onPress={() =>
                 navigation.navigate('QuestionSetForm', { id: item._id })
               }
@@ -115,9 +145,7 @@ export default function QuestionSetListScreen({ navigation }) {
                     {item.totalQuestions} questions
                   </Text>
                   {item.subjectId?.name && (
-                    <Text style={styles.metaText}>
-                      • {item.subjectId.name}
-                    </Text>
+                    <Text style={styles.metaText}>• {item.subjectId.name}</Text>
                   )}
                 </View>
               </View>

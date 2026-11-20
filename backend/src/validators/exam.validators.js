@@ -46,6 +46,7 @@ const examUpdateSchema = z
 const examListQuerySchema = z
   .object({
     ...paginationFields,
+    limit: z.coerce.number().int().min(1).max(25).default(25),
     status: z.enum(['draft', 'published', 'cancelled']).optional(),
     batchId: objectId.optional(),
     subjectId: objectId.optional(),
@@ -55,6 +56,7 @@ const examListQuerySchema = z
 const examDuplicateSchema = z
   .object({
     name: z.string().trim().min(2).max(200),
+    batchId: objectId.optional(),
     startTime: isoDatetime,
     endTime: isoDatetime,
     durationMinutes: z.number().int().min(1).max(600).optional(),

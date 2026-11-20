@@ -65,12 +65,14 @@ export default function QuestionBankScreen({ navigation, route }) {
   const [search, setSearch] = useState('');
   const [isActive, setIsActive] = useState(admin ? undefined : true);
   const [subjectId, setSubjectId] = useState('');
+  const [chapterId, setChapterId] = useState('');
   const [difficulty, setDifficulty] = useState(undefined);
   const debouncedSearch = useDebouncedValue(search.trim());
   const query = useQuestions(role, {
     search: debouncedSearch,
     isActive: admin ? isActive : undefined,
     subjectId: subjectId || undefined,
+    chapterId: chapterId || undefined,
     difficulty,
   });
   const deleteMutation = useDeleteQuestion();
@@ -79,6 +81,9 @@ export default function QuestionBankScreen({ navigation, route }) {
   const subjects = admin
     ? adminSubjects.data?.data || []
     : teacherSubjects.data?.data || [];
+  const adminChaptersQuery = useAdminOptions('chapters', admin && !!subjectId, { subjectId, isActive: true });
+  const teacherChaptersQuery = usePortalQuery('teacher', 'chapters', !admin);
+  const chapterOptions = admin ? adminChaptersQuery.data?.data || [] : (teacherChaptersQuery.data?.data || []).filter((chapter) => !subjectId || chapter.subjectId?._id === subjectId);
   const items = useMemo(
     () => query.data?.pages.flatMap((page) => page.data) || [],
     [query.data],
@@ -154,6 +159,7 @@ export default function QuestionBankScreen({ navigation, route }) {
           options={subjects}
           value={subjectId}
         />
+        <RelationSelectField allowClear label="Chapter filter" onChange={setChapterId} options={chapterOptions} value={chapterId} />
         <View style={styles.filterRow}>
           {difficulties.map((item) => {
             const selected = difficulty === item.value;

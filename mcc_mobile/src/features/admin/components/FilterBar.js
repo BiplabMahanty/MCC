@@ -24,6 +24,10 @@ export default function FilterBar({
   batches = [],
   onBatchChange,
   showBatch = false,
+  subjectId,
+  subjects = [],
+  onSubjectChange,
+  showSubject = false,
   showStatus = true,
 }) {
   return (
@@ -91,6 +95,37 @@ export default function FilterBar({
                     ]}
                   >
                     {batch.name}
+                  </Text>
+                </Pressable>
+              );
+            },
+          )}
+        </ScrollView>
+      ) : null}
+      {showSubject ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filters}
+        >
+          {[{ _id: undefined, name: 'All subjects' }, ...subjects].map(
+            (subject) => {
+              const selected = subjectId === subject._id;
+              return (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  key={subject._id || 'all-subjects'}
+                  onPress={() => onSubjectChange(subject._id)}
+                  style={[styles.filter, selected && styles.filterSelected]}
+                >
+                  <Text
+                    style={[
+                      styles.filterText,
+                      selected && styles.filterTextSelected,
+                    ]}
+                  >
+                    {subject.name}
                   </Text>
                 </Pressable>
               );

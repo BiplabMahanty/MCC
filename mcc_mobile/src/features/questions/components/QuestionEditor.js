@@ -12,6 +12,7 @@ const difficulties = ['easy', 'medium', 'hard'];
 export default function QuestionEditor({
   question,
   subjects,
+  chapters,
   onChange,
   errors,
 }) {
@@ -45,9 +46,16 @@ export default function QuestionEditor({
         <RelationSelectField
           error={errors.subjectId}
           label="Subject"
-          onChange={(value) => update('subjectId', value)}
+          onChange={(value) => onChange({ ...question, subjectId: value, chapterId: '' })}
           options={subjects}
           value={question.subjectId}
+        />
+        <RelationSelectField
+          error={errors.chapterId}
+          label="Chapter"
+          onChange={(value) => update('chapterId', value)}
+          options={chapters}
+          value={question.chapterId}
         />
         <AppInput
           error={errors.topic}

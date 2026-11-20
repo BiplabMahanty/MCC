@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listCourses, createCourse, updateCourse, deleteCourse } from '../api/courses';
 import { listBatches, createBatch, updateBatch, deleteBatch } from '../api/batches';
 import { listSubjects, createSubject, updateSubject, deleteSubject } from '../api/subjects';
+import { listChapters, createChapter, updateChapter, deleteChapter } from '../api/chapters';
 
 // ── Courses ──────────────────────────────────────────────────────────────────
 export function useCourses(params) {
@@ -52,4 +53,20 @@ export function useUpdateSubject() {
 export function useDeleteSubject() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: deleteSubject, onSuccess: () => { qc.invalidateQueries({ queryKey: ['subjects'] }); qc.invalidateQueries({ queryKey: ['subjects-select'] }); } });
+}
+
+export function useChapters(params) {
+  return useQuery({ queryKey: ['chapters', params], queryFn: () => listChapters(params), keepPreviousData: true });
+}
+export function useCreateChapter() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: createChapter, onSuccess: () => qc.invalidateQueries({ queryKey: ['chapters'] }) });
+}
+export function useUpdateChapter() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: ({ id, data }) => updateChapter(id, data), onSuccess: () => qc.invalidateQueries({ queryKey: ['chapters'] }) });
+}
+export function useDeleteChapter() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: deleteChapter, onSuccess: () => qc.invalidateQueries({ queryKey: ['chapters'] }) });
 }

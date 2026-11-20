@@ -36,6 +36,18 @@ const MENU_GROUPS = [
         route: 'AdminEntityList',
         params: { entityType: 'batches' },
       },
+      {
+        label: 'Subjects',
+        icon: 'S',
+        route: 'AdminEntityList',
+        params: { entityType: 'subjects' },
+      },
+      {
+        label: 'Chapters',
+        icon: 'C',
+        route: 'AdminEntityList',
+        params: { entityType: 'chapters' },
+      },
     ],
   },
   {

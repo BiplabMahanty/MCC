@@ -22,13 +22,13 @@ function useSubjectOptions() {
   });
 }
 
-function useQuestionOptions(subjectId) {
+function useQuestionOptions(subjectId, chapterId) {
   return useQuery({
-    queryKey: ['questions-select', subjectId],
+    queryKey: ['questions-select', subjectId, chapterId],
     queryFn: () =>
       client
         .get('/admin/questions', {
-          params: { subjectId, isActive: true, limit: 100 },
+          params: { subjectId, ...(chapterId && { chapterId }), isActive: true, limit: 100 },
         })
         .then((r) => r.data.data),
     enabled: !!subjectId,
@@ -44,8 +44,10 @@ export default function QuestionSetFormPage() {
 
   const { data: subjects = [] } = useSubjectOptions();
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
+  const [chapterId, setChapterId] = useState('');
+  const { data: chapters = [] } = useQuery({ queryKey: ['chapters-select', selectedSubjectId], queryFn: () => client.get('/admin/chapters', { params: { subjectId: selectedSubjectId, isActive: true, limit: 100 } }).then((r) => r.data.data), enabled: !!selectedSubjectId, staleTime: 60000 });
   const { data: questions = [], isLoading: loadingQuestions } =
-    useQuestionOptions(selectedSubjectId);
+    useQuestionOptions(selectedSubjectId, chapterId);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -67,6 +69,7 @@ export default function QuestionSetFormPage() {
     setDescription(existing.description ?? '');
     setSubjectId(existing.subjectId?._id ?? existing.subjectId ?? '');
     setSelectedSubjectId(existing.subjectId?._id ?? existing.subjectId ?? '');
+    setChapterId(existing.chapterId?._id ?? existing.chapterId ?? '');
     setQuestionIds(
       existing.questionIds?.map((q) => (typeof q === 'string' ? q : q._id)) ??
         []
@@ -202,9 +205,12 @@ export default function QuestionSetFormPage() {
               onChange={(e) => {
                 setSubjectId(e.target.value);
                 setSelectedSubjectId(e.target.value);
+                setChapterId('');
                 setQuestionIds([]);
               }}
             />
+
+            {subjectId && chapters.length > 0 && <Select label="Chapter filter" options={chapters.map((c) => ({ value: c._id, label: c.name }))} placeholder="All chapters" value={chapterId} onChange={(e) => { setChapterId(e.target.value); setQuestionIds([]); }} />}
 
             <Checkbox
               label="Active"

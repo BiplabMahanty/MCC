@@ -48,7 +48,7 @@ function initialValues(fields, record) {
           typeof item === 'object' ? item._id : item,
         );
       } else if (
-        ['batch', 'course', 'teacher'].includes(field.type) &&
+        ['batch', 'course', 'teacher', 'subject'].includes(field.type) &&
         value &&
         typeof value === 'object'
       ) {
@@ -135,7 +135,7 @@ function requestBody(fields, values, editing) {
         return [[field.key, null]];
       }
 
-      if (['batch', 'course', 'teacher'].includes(field.type) && !trimmed) {
+      if (['batch', 'course', 'teacher', 'subject'].includes(field.type) && !trimmed) {
         return [[field.key, null]];
       }
 
@@ -334,7 +334,7 @@ function EntityForm({
               );
             }
 
-            if (['batch', 'course', 'teacher'].includes(field.type)) {
+            if (['batch', 'course', 'teacher', 'subject'].includes(field.type)) {
               return (
                 <RelationSelectField
                   allowClear={!field.required}
@@ -415,10 +415,12 @@ export default function EntityFormScreen({ navigation, route }) {
     'teachers',
     relationTypes.has('teacher'),
   );
+  const subjectsQuery = useAdminOptions('subjects', relationTypes.has('subject'));
   const optionQueries = [
     { enabled: relationTypes.has('course'), query: coursesQuery },
     { enabled: relationTypes.has('batch'), query: batchesQuery },
     { enabled: relationTypes.has('teacher'), query: teachersQuery },
+    { enabled: relationTypes.has('subject'), query: subjectsQuery },
   ];
   const optionsPending = optionQueries.some(
     ({ enabled, query }) => enabled && query.isPending,
@@ -465,6 +467,7 @@ export default function EntityFormScreen({ navigation, route }) {
           batch: batchesQuery.data?.data || [],
           course: coursesQuery.data?.data || [],
           teacher: teachersQuery.data?.data || [],
+          subject: subjectsQuery.data?.data || [],
         }}
         record={entityQuery.data?.data}
       />

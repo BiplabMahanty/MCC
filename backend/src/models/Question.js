@@ -60,6 +60,12 @@ const questionSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    chapterId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Chapter',
+      index: true,
+      default: null,
+    },
     topic: { type: String, required: true, trim: true, maxlength: 120 },
     difficulty: {
       type: String,
@@ -140,6 +146,7 @@ questionSchema.index({ instituteId: 1, searchText: 'text' });
 questionSchema.index({
   instituteId: 1,
   subjectId: 1,
+  chapterId: 1,
   difficulty: 1,
   isActive: 1,
   isDeleted: 1,

@@ -116,7 +116,7 @@ export default function CoursesPage() {
     } catch (err) {
       const status = err.response?.status;
       if (status === 409) {
-        toast.error('Cannot delete: this course still has active batches or subjects.');
+        toast.error('Cannot delete: this course still has active batches.');
       } else {
         toast.error(err.response?.data?.message ?? 'Delete failed.');
       }
@@ -170,7 +170,7 @@ export default function CoursesPage() {
       <Modal open={!!deleting} onClose={() => setDeleting(null)} title="Delete Course" confirm confirmLabel="Delete" confirmVariant="danger" onConfirm={confirmDelete} loading={deleteCourse.isPending}>
         <p className="text-sm text-text-muted">
           Are you sure you want to delete <strong className="text-text-primary">{deleting?.name}</strong>?
-          This will fail if the course has existing batches or subjects.
+          This will fail if the course has existing batches.
         </p>
       </Modal>
     </div>

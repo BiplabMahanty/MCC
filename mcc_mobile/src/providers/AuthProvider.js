@@ -27,6 +27,13 @@ function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+function isInvalidRefreshTokenError(error) {
+  return (
+    error?.code === 'INVALID_REFRESH_TOKEN' ||
+    error?.code === 'AUTHENTICATION_REQUIRED'
+  );
+}
+
 export default function AuthProvider({ children }) {
   const queryClient = useQueryClient();
   const [accessToken, setAccessToken] = useState(null);
@@ -67,8 +74,13 @@ export default function AuthProvider({ children }) {
         });
         await applySession(session);
         return true;
-      } catch {
-        await clearSession();
+      } catch (error) {
+        // Only an explicit authentication failure means the refresh token is
+        // unusable. Network errors, timeouts, and temporary server failures
+        // must not turn into an automatic logout.
+        if (isInvalidRefreshTokenError(error)) {
+          await clearSession();
+        }
         return false;
       }
     },
@@ -85,9 +97,7 @@ export default function AuthProvider({ children }) {
       const sessionRestore = refreshSession({
         signal: startupAbortController.signal,
       });
-      const sessionTimeout = wait(STARTUP_SESSION_TIMEOUT_MS).then(() => {
-        startupAbortController.abort();
-      });
+      const sessionTimeout = wait(STARTUP_SESSION_TIMEOUT_MS);
 
       await Promise.race([sessionRestore, sessionTimeout]);
       await minimumSplash;

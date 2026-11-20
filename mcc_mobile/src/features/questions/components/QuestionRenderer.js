@@ -60,7 +60,9 @@ export default function QuestionRenderer({
                 pressed && styles.pressed,
               ]}
             >
-              <Text style={[styles.optionLabel, selected && styles.selectedLabel]}>
+              <Text
+                style={[styles.optionLabel, selected && styles.selectedLabel]}
+              >
                 {String.fromCharCode(65 + index)}
               </Text>
               <View style={styles.optionContent}>

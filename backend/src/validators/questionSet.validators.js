@@ -23,6 +23,7 @@ const questionSetListQuerySchema = z
   .object({
     ...paginationFields,
     subjectId: objectId.optional(),
+    chapterId: objectId.optional(),
     search: z.string().trim().optional(),
   })
   .strict();

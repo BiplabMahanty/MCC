@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import colors from '../../../theme/colors';
+import RelationSelectField from '../../admin/components/RelationSelectField';
+import { useAdminOptions } from '../../admin/hooks/useAdminEntities';
 
 export default function ExamReplicaModal({
   visible,
@@ -23,6 +25,7 @@ export default function ExamReplicaModal({
 }) {
   const [formData, setFormData] = useState({
     name: '',
+    batchId: '',
     startDateTime: new Date(),
     endDateTime: new Date(),
     durationMinutes: '',
@@ -38,6 +41,7 @@ export default function ExamReplicaModal({
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [errors, setErrors] = useState({});
+  const batchesQuery = useAdminOptions('batches', visible);
 
   useEffect(() => {
     if (exam && visible) {
@@ -46,6 +50,7 @@ export default function ExamReplicaModal({
 
       setFormData({
         name: `${exam.name} (Copy)`,
+        batchId: exam.batchId?._id || exam.batchId || '',
         startDateTime,
         endDateTime,
         durationMinutes: String(exam.durationMinutes || ''),
@@ -111,6 +116,7 @@ export default function ExamReplicaModal({
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Exam name is required';
+    if (!formData.batchId) newErrors.batchId = 'Batch is required';
     if (formData.endDateTime <= formData.startDateTime) {
       newErrors.endDateTime = 'End time must be after start time';
     }
@@ -123,6 +129,7 @@ export default function ExamReplicaModal({
 
     const payload = {
       name: formData.name,
+      batchId: formData.batchId,
       startTime: formData.startDateTime.toISOString(),
       endTime: formData.endDateTime.toISOString(),
     };
@@ -181,6 +188,15 @@ export default function ExamReplicaModal({
                 editable={!loading}
               />
               {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+              <View style={{ marginTop: 16 }}>
+                <RelationSelectField
+                  error={errors.batchId}
+                  label="Batch *"
+                  onChange={(v) => handleChange('batchId', v)}
+                  options={batchesQuery.data?.data ?? []}
+                  value={formData.batchId}
+                />
+              </View>
             </View>
           </View>
 

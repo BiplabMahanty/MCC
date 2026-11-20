@@ -249,12 +249,13 @@ async function remove(instituteId, userId, id) {
 async function duplicate(instituteId, userId, id, input) {
   const originalExam = await Exam.findOne({ _id: id, instituteId, isDeleted: false });
   if (!originalExam) throw new AppError('Exam not found.', 404, 'NOT_FOUND');
+  await validateRelations(instituteId, { batchId: input.batchId ?? originalExam.batchId });
 
   const newExam = await Exam.create({
     name: input.name,
     examType: originalExam.examType,
     academicSession: originalExam.academicSession,
-    batchId: originalExam.batchId,
+    batchId: input.batchId ?? originalExam.batchId,
     subjectId: originalExam.subjectId,
     teacherIds: originalExam.teacherIds,
     questionSetId: originalExam.questionSetId,

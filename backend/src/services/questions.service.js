@@ -1,4 +1,5 @@
 const Question = require('../models/Question');
+const Chapter = require('../models/Chapter');
 const Subject = require('../models/Subject');
 const AppError = require('../utils/AppError');
 const { paginationMeta, paginationWindow } = require('../utils/pagination');
@@ -6,6 +7,7 @@ const uploadsService = require('./uploads.service');
 
 const writableFields = [
   'subjectId',
+  'chapterId',
   'topic',
   'difficulty',
   'content',
@@ -71,12 +73,25 @@ async function validateSubject(instituteId, subjectId) {
   }
 }
 
+async function validateChapter(instituteId, subjectId, chapterId) {
+  if (!chapterId) return;
+  const chapter = await Chapter.exists({
+    _id: chapterId,
+    subjectId,
+    instituteId,
+    isActive: true,
+    isDeleted: false,
+  });
+  if (!chapter) throw new AppError('Active chapter does not belong to the selected subject.', 400, 'INVALID_CHAPTER');
+}
+
 function listFilter(instituteId, query, allowedSubjectIds) {
   const filter = {
     instituteId,
     isDeleted: false,
     ...(query.isActive !== undefined && { isActive: query.isActive }),
     ...(query.subjectId && { subjectId: query.subjectId }),
+    ...(query.chapterId && { chapterId: query.chapterId }),
     ...(query.difficulty && { difficulty: query.difficulty }),
     ...(query.topic && {
       topic: {
@@ -110,6 +125,7 @@ function summary(question) {
     _id: question._id,
     subjectId: question.subjectId,
     topic: question.topic,
+    chapterId: question.chapterId,
     difficulty: question.difficulty,
     isActive: question.isActive,
     updatedAt: question.updatedAt,
@@ -123,8 +139,9 @@ async function list(instituteId, query, allowedSubjectIds) {
   const filter = listFilter(instituteId, query, allowedSubjectIds);
   const [questions, total] = await Promise.all([
     Question.find(filter)
-      .select('subjectId topic difficulty content isActive updatedAt')
+      .select('subjectId chapterId topic difficulty content isActive updatedAt')
       .populate({ path: 'subjectId', select: 'name code' })
+      .populate({ path: 'chapterId', select: 'name code subjectId' })
       .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -150,6 +167,7 @@ async function getById(instituteId, id, allowedSubjectIds) {
   })
     .select('-searchText -isDeleted -deletedAt -__v')
     .populate({ path: 'subjectId', select: 'name code' })
+    .populate({ path: 'chapterId', select: 'name code subjectId' })
     .lean();
 
   if (!question) {
@@ -161,6 +179,7 @@ async function getById(instituteId, id, allowedSubjectIds) {
 
 async function create(instituteId, userId, input) {
   await validateSubject(instituteId, input.subjectId);
+  await validateChapter(instituteId, input.subjectId, input.chapterId);
   await validateImages(instituteId, input);
   const question = await Question.create({
     ...ownedInput(input),
@@ -169,13 +188,15 @@ async function create(instituteId, userId, input) {
     updatedBy: userId,
   });
   await question.populate({ path: 'subjectId', select: 'name code' });
+  await question.populate({ path: 'chapterId', select: 'name code subjectId' });
   return question.toJSON();
 }
 
 async function createBulk(instituteId, userId, questions) {
-  await Promise.all(
-    questions.map((q) => validateSubject(instituteId, q.subjectId)),
-  );
+  await Promise.all(questions.flatMap((q) => [
+    validateSubject(instituteId, q.subjectId),
+    validateChapter(instituteId, q.subjectId, q.chapterId),
+  ]));
   await Promise.all(
     questions.map((q) => validateImages(instituteId, q)),
   );
@@ -189,6 +210,7 @@ async function createBulk(instituteId, userId, questions) {
 
   const created = await Question.insertMany(docs);
   await Question.populate(created, { path: 'subjectId', select: 'name code' });
+  await Question.populate(created, { path: 'chapterId', select: 'name code subjectId' });
   return created.map((q) => q.toJSON());
 }
 
@@ -205,6 +227,14 @@ async function update(instituteId, userId, id, input) {
 
   if (input.subjectId) {
     await validateSubject(instituteId, input.subjectId);
+  }
+
+  if (input.chapterId) {
+    await validateChapter(
+      instituteId,
+      input.subjectId || question.subjectId,
+      input.chapterId,
+    );
   }
 
   const next = {
@@ -231,6 +261,7 @@ async function update(instituteId, userId, id, input) {
   Object.assign(question, ownedInput(input), { updatedBy: userId });
   await question.save();
   await question.populate({ path: 'subjectId', select: 'name code' });
+  await question.populate({ path: 'chapterId', select: 'name code subjectId' });
   return question.toJSON();
 }
 

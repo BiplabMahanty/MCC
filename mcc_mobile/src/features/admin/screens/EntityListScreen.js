@@ -27,15 +27,21 @@ export default function EntityListScreen({ navigation, route }) {
   const [search, setSearch] = useState('');
   const [isActive, setIsActive] = useState(undefined);
   const [batchId, setBatchId] = useState(undefined);
+  const [subjectId, setSubjectId] = useState(undefined);
   const debouncedSearch = useDebouncedValue(search.trim());
   const isStudentModule = entityType === 'students';
+  const isChapterModule = entityType === 'chapters';
   const batchesQuery = useAdminOptions('batches', isStudentModule, {
+    isActive: undefined,
+  });
+  const subjectsQuery = useAdminOptions('subjects', isChapterModule, {
     isActive: undefined,
   });
   const query = useAdminEntities(entityType, {
     search: debouncedSearch,
     isActive,
     batchId: isStudentModule ? batchId : undefined,
+    subjectId: isChapterModule ? subjectId : undefined,
   });
   const deleteMutation = useDeleteAdminEntity(entityType);
   const items = useMemo(
@@ -116,6 +122,10 @@ export default function EntityListScreen({ navigation, route }) {
           onSearchChange={setSearch}
           search={search}
           showBatch={isStudentModule}
+          onSubjectChange={setSubjectId}
+          subjectId={subjectId}
+          subjects={subjectsQuery.data?.data || []}
+          showSubject={isChapterModule}
         />
         <FlashList
           contentContainerStyle={styles.listContent}

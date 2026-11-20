@@ -26,6 +26,10 @@ function initialQuestion(record) {
         typeof record.subjectId === 'object'
           ? record.subjectId._id
           : record.subjectId,
+      chapterId:
+        typeof record.chapterId === 'object'
+          ? record.chapterId?._id
+          : record.chapterId || '',
       topic: record.topic,
       difficulty: record.difficulty,
       content: record.content,
@@ -37,6 +41,7 @@ function initialQuestion(record) {
 
   return {
     subjectId: '',
+    chapterId: '',
     topic: '',
     difficulty: 'medium',
     content: [{ type: 'text', value: '' }],
@@ -99,10 +104,11 @@ function validate(question) {
   return errors;
 }
 
-function FormContent({ navigation, id, record, subjects }) {
+function FormContent({ navigation, id, record, subjects, chapters }) {
   const [question, setQuestion] = useState(() => initialQuestion(record));
   const [errors, setErrors] = useState({});
   const saveMutation = useSaveQuestion(id);
+  const chaptersQuery = useAdminOptions('chapters', !!question.subjectId, { subjectId: question.subjectId });
 
   async function save() {
     const nextErrors = validate(question);
@@ -145,6 +151,7 @@ function FormContent({ navigation, id, record, subjects }) {
           onChange={setQuestion}
           question={question}
           subjects={subjects}
+          chapters={chaptersQuery.data?.data || chapters || []}
         />
         {saveMutation.error ? (
           <Text accessibilityRole="alert" style={styles.submitError}>
@@ -165,8 +172,10 @@ export default function QuestionFormScreen({ navigation, route }) {
   const { id } = route.params;
   const questionQuery = useQuestion('admin', id);
   const subjectsQuery = useAdminOptions('subjects');
+  const subjectId = questionQuery.data?.data?.subjectId?._id || questionQuery.data?.data?.subjectId || '';
+  const chaptersQuery = useAdminOptions('chapters', !!subjectId, { subjectId });
 
-  if ((id && questionQuery.isPending) || subjectsQuery.isPending) {
+  if ((id && questionQuery.isPending) || subjectsQuery.isPending || chaptersQuery.isPending) {
     return (
       <Screen>
         <Loader message="Loading question editor..." />
@@ -174,7 +183,7 @@ export default function QuestionFormScreen({ navigation, route }) {
     );
   }
 
-  const error = questionQuery.error || subjectsQuery.error;
+  const error = questionQuery.error || subjectsQuery.error || chaptersQuery.error;
   if (error) {
     return (
       <Screen>
@@ -183,8 +192,9 @@ export default function QuestionFormScreen({ navigation, route }) {
           onRetry={() => {
             if (questionQuery.error) questionQuery.refetch();
             if (subjectsQuery.error) subjectsQuery.refetch();
+            if (chaptersQuery.error) chaptersQuery.refetch();
           }}
-          retrying={questionQuery.isFetching || subjectsQuery.isFetching}
+        retrying={questionQuery.isFetching || subjectsQuery.isFetching || chaptersQuery.isFetching}
         />
       </Screen>
     );
@@ -198,6 +208,7 @@ export default function QuestionFormScreen({ navigation, route }) {
         navigation={navigation}
         record={questionQuery.data?.data}
         subjects={subjectsQuery.data?.data || []}
+        chapters={chaptersQuery.data?.data || []}
       />
     </Screen>
   );

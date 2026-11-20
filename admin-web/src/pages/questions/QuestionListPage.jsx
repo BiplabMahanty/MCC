@@ -42,12 +42,14 @@ export default function QuestionListPage() {
   const [filter, setFilter] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [subjectId, setSubjectId] = useState('');
+  const [chapterId, setChapterId] = useState('');
   const [page, setPage] = useState(1);
   const [deleting, setDeleting] = useState(null);
 
   const debouncedSearch = useDebounce(search, 300);
   const deleteQuestion = useDeleteQuestion();
   const { data: subjects = [] } = useSubjectOptions();
+  const { data: chapters = [] } = useQuery({ queryKey: ['chapters-select', subjectId], queryFn: () => client.get('/admin/chapters', { params: { isActive: true, limit: 100, subjectId } }).then((r) => r.data.data), enabled: !!subjectId, staleTime: 60_000 });
 
   const params = {
     page, limit: 20,
@@ -55,6 +57,7 @@ export default function QuestionListPage() {
     ...(filter !== '' && { isActive: filter }),
     ...(difficulty && { difficulty }),
     ...(subjectId && { subjectId }),
+    ...(chapterId && { chapterId }),
   };
 
   const { data, isLoading, isError, refetch } = useQuestions(params);
@@ -121,9 +124,12 @@ export default function QuestionListPage() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
         <SearchInput value={search} onChange={handleSearch} placeholder="Search questions..." className="sm:w-64" />
-        <select value={subjectId} onChange={(e) => { setSubjectId(e.target.value); setPage(1); }}
+        <select value={subjectId} onChange={(e) => { setSubjectId(e.target.value); setChapterId(''); setPage(1); }}
           className="h-9 rounded-lg border border-border bg-white px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand">
           {subjectOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <select value={chapterId} disabled={!subjectId} onChange={(e) => { setChapterId(e.target.value); setPage(1); }} className="h-9 rounded-lg border border-border bg-white px-3 text-sm text-text-primary">
+          <option value="">All Chapters</option>{chapters.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
         </select>
         <select value={difficulty} onChange={(e) => { setDifficulty(e.target.value); setPage(1); }}
           className="h-9 rounded-lg border border-border bg-white px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand">

@@ -7,7 +7,6 @@ import { useToast } from '../../components/ui/Toast';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
 import Checkbox from '../../components/ui/Checkbox';
 import MultiSelect from '../../components/ui/MultiSelect';
 import SearchInput from '../../components/ui/SearchInput';
@@ -17,14 +16,6 @@ import Modal from '../../components/ui/Modal';
 import ErrorState from '../../components/ui/ErrorState';
 import useDebounce from '../../hooks/useDebounce';
 import client from '../../api/client';
-
-function useCourseOptions() {
-  return useQuery({
-    queryKey: ['courses-select'],
-    queryFn: () => client.get('/admin/courses', { params: { isActive: true, limit: 100 } }).then((r) => r.data.data),
-    staleTime: 60_000,
-  });
-}
 
 function useTeacherOptions() {
   return useQuery({
@@ -39,7 +30,6 @@ function SubjectForm({ open, onClose, subject }) {
   const { toast } = useToast();
   const create = useCreateSubject();
   const update = useUpdateSubject();
-  const { data: courses = [] } = useCourseOptions();
   const { data: teachers = [] } = useTeacherOptions();
   const [teacherIds, setTeacherIds] = useState([]);
 
@@ -50,12 +40,11 @@ function SubjectForm({ open, onClose, subject }) {
     if (subject) {
       reset({
         name: subject.name ?? '', code: subject.code ?? '',
-        courseId: subject.courseId?._id ?? subject.courseId ?? '',
         description: subject.description ?? '', isActive: subject.isActive ?? true,
       });
       setTeacherIds(subject.teacherIds?.map((t) => t._id ?? t) ?? []);
     } else {
-      reset({ name: '', code: '', courseId: '', description: '', isActive: true });
+      reset({ name: '', code: '', description: '', isActive: true });
       setTeacherIds([]);
     }
   }, [open, subject]);
@@ -76,7 +65,6 @@ function SubjectForm({ open, onClose, subject }) {
     }
   };
 
-  const courseOptions = courses.map((c) => ({ value: c._id, label: `${c.name} (${c.code})` }));
   const teacherOptions = teachers.map((t) => ({ value: t._id, label: t.name }));
   const isActive = watch('isActive');
 
@@ -89,8 +77,6 @@ function SubjectForm({ open, onClose, subject }) {
               {...register('name', { required: 'Name is required' })} />
             <Input label="Code *" placeholder="MATH-101" error={errors.code?.message}
               {...register('code', { required: 'Code is required' })} />
-            <Select label="Course *" options={courseOptions} placeholder="Select course" error={errors.courseId?.message}
-              {...register('courseId', { required: 'Course is required' })} />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-text-primary">Description</label>
@@ -123,7 +109,6 @@ export default function SubjectsPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
-  const [courseFilter, setCourseFilter] = useState('');
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -131,13 +116,11 @@ export default function SubjectsPage() {
 
   const debouncedSearch = useDebounce(search, 300);
   const deleteSubject = useDeleteSubject();
-  const { data: courses = [] } = useCourseOptions();
 
   const params = {
     page, limit: 20,
     ...(debouncedSearch && { search: debouncedSearch }),
     ...(filter !== '' && { isActive: filter }),
-    ...(courseFilter && { courseId: courseFilter }),
   };
 
   const { data, isLoading, isError, refetch } = useSubjects(params);
@@ -157,8 +140,6 @@ export default function SubjectsPage() {
     }
   };
 
-  const courseSelectOptions = [{ value: '', label: 'All Courses' }, ...courses.map((c) => ({ value: c._id, label: c.name }))];
-
   const columns = [
     { header: 'Name', accessorKey: 'name', cell: (v, row) => (
       <div>
@@ -166,7 +147,6 @@ export default function SubjectsPage() {
         <p className="text-xs text-text-muted">{row.code}</p>
       </div>
     )},
-    { header: 'Course', accessorKey: 'courseId', cell: (v) => v?.name ?? <span className="text-text-muted">—</span> },
     { header: 'Teachers', accessorKey: 'teacherIds', cell: (v) => v?.length ?? 0 },
     { header: 'Status', accessorKey: 'isActive', cell: (v) => <Badge variant={v ? 'active' : 'inactive'}>{v ? 'Active' : 'Inactive'}</Badge> },
     { header: 'Actions', accessorKey: '_id', cell: (_, row) => (
@@ -183,13 +163,6 @@ export default function SubjectsPage() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
         <SearchInput value={search} onChange={handleSearch} placeholder="Search subjects..." className="sm:w-64" />
-        <select
-          value={courseFilter}
-          onChange={(e) => { setCourseFilter(e.target.value); setPage(1); }}
-          className="h-9 rounded-lg border border-border bg-white px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand"
-        >
-          {courseSelectOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
         <div className="flex items-center gap-1 bg-card border border-border rounded-lg p-1">
           {FILTERS.map((f) => (
             <button key={f.value} onClick={() => handleFilter(f.value)}

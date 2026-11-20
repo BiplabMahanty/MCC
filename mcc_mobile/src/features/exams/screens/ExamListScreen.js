@@ -237,7 +237,9 @@ export default function ExamListScreen({ navigation, route }) {
   const [paperAction, setPaperAction] = useState(null);
   const [publishingExamId, setPublishingExamId] = useState(null);
   const [unpublishingExamId, setUnpublishingExamId] = useState(null);
-  const query = useExams(role, { status });
+  // Fetch exams in predictable pages. The next page is appended when the list
+  // reaches the end, so the user sees 1-25, then 26-50, and so on.
+  const query = useExams(role, { status, limit: 25 });
   const publishMutation = usePublishExam();
   const unpublishMutation = useUnpublishExam();
   const deleteMutation = useDeleteExam();
@@ -369,7 +371,7 @@ export default function ExamListScreen({ navigation, route }) {
                 if (query.hasNextPage && !query.isFetchingNextPage)
                   query.fetchNextPage();
               }}
-              onEndReachedThreshold={0.4}
+              onEndReachedThreshold={0.1}
               contentContainerStyle={styles.listContent}
               refreshControl={
                 <RefreshControl
@@ -471,7 +473,7 @@ export default function ExamListScreen({ navigation, route }) {
             if (query.hasNextPage && !query.isFetchingNextPage)
               query.fetchNextPage();
           }}
-          onEndReachedThreshold={0.4}
+          onEndReachedThreshold={0.1}
           renderItem={({ item }) => (
             <AdminExamItem
               item={item}

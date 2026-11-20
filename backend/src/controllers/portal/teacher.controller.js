@@ -9,6 +9,7 @@ function handler(serviceMethod) {
 
 module.exports = {
   getBatches: handler(teacherService.getBatches),
+  getChapters: handler(teacherService.getChapters),
   getDashboard: handler(teacherService.getDashboard),
   getProfile: handler(teacherService.getProfile),
   getSchedule: handler(teacherService.getSchedule),

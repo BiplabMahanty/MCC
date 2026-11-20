@@ -71,8 +71,6 @@ async function getSubjects(userId, instituteId) {
 
   return Subject.find({
     instituteId,
-    courseId: batch.courseId._id,
-    teacherIds: { $in: batch.teacherIds || [] },
     isActive: true,
     isDeleted: false,
   })
@@ -89,7 +87,6 @@ async function getTeachers(userId, instituteId) {
 
   const subjectTeacherIds = await Subject.find({
     instituteId,
-    courseId: batch.courseId._id,
     isActive: true,
     isDeleted: false,
   }).distinct('teacherIds');
@@ -128,7 +125,6 @@ async function getDashboard(userId, instituteId) {
   const [subjects, teachers] = await Promise.all([
     Subject.countDocuments({
       instituteId,
-      courseId: batch.courseId._id,
       isActive: true,
       isDeleted: false,
     }),

@@ -52,7 +52,7 @@ function safeQuestionSet(set) {
 }
 
 async function list(instituteId, query) {
-  const { page, limit, subjectId, search } = query;
+  const { page, limit, subjectId, chapterId, search } = query;
   const { skip } = paginationWindow(page, limit);
 
   const filter = {
@@ -61,6 +61,16 @@ async function list(instituteId, query) {
     ...(subjectId && { subjectId }),
     ...(search && { name: { $regex: search, $options: 'i' } }),
   };
+
+  if (chapterId) {
+    const chapterQuestionIds = await Question.find({
+      instituteId,
+      chapterId,
+      ...(subjectId && { subjectId }),
+      isDeleted: false,
+    }).distinct('_id');
+    filter.questionIds = { $in: chapterQuestionIds };
+  }
 
   const [sets, total] = await Promise.all([
     QuestionSet.find(filter)

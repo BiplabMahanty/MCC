@@ -5,14 +5,15 @@ const subjectSchema = new mongoose.Schema(
     instituteId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Institute',
-      required: true,
       index: true,
+      required: true,
     },
     courseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Course',
-      required: true,
       index: true,
+      // Legacy records may retain this field; new subjects are institute-wide.
+      required: false,
     },
     teacherIds: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

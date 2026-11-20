@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 
-export default function ExamReplicaModal({ open, exam, onClose, onSubmit, loading }) {
+export default function ExamReplicaModal({ open, exam, batches = [], onClose, onSubmit, loading }) {
   const [formData, setFormData] = useState({
     name: '',
+    batchId: '',
     startTime: '',
     endTime: '',
     durationMinutes: '',
@@ -24,6 +25,7 @@ export default function ExamReplicaModal({ open, exam, onClose, onSubmit, loadin
       
       setFormData({
         name: `${exam.name} (Copy)`,
+        batchId: exam.batchId?._id || exam.batchId || '',
         startTime: startDate,
         endTime: endDate,
         durationMinutes: exam.durationMinutes || '',
@@ -51,6 +53,7 @@ export default function ExamReplicaModal({ open, exam, onClose, onSubmit, loadin
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Exam name is required';
+    if (!formData.batchId) newErrors.batchId = 'Batch is required';
     if (!formData.startTime) newErrors.startTime = 'Start time is required';
     if (!formData.endTime) newErrors.endTime = 'End time is required';
     if (formData.startTime && formData.endTime && new Date(formData.endTime) <= new Date(formData.startTime)) {
@@ -65,6 +68,7 @@ export default function ExamReplicaModal({ open, exam, onClose, onSubmit, loadin
 
     const payload = {
       name: formData.name,
+      batchId: formData.batchId,
       startTime: new Date(formData.startTime).toISOString(),
       endTime: new Date(formData.endTime).toISOString(),
     };
@@ -93,6 +97,24 @@ export default function ExamReplicaModal({ open, exam, onClose, onSubmit, loadin
             className={`w-full px-3 py-2 rounded-lg border ${errors.name ? 'border-error' : 'border-border'} bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-brand`}
           />
           {errors.name && <p className="text-xs text-error mt-1">{errors.name}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-text-primary mb-1">Batch *</label>
+          <select
+            name="batchId"
+            value={formData.batchId}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 rounded-lg border ${errors.batchId ? 'border-error' : 'border-border'} bg-white text-text-primary focus:outline-none focus:ring-2 focus:ring-brand`}
+          >
+            <option value="">Select batch</option>
+            {batches.map((batch) => (
+              <option key={batch._id} value={batch._id}>
+                {batch.name}{batch.code ? ` (${batch.code})` : ''}
+              </option>
+            ))}
+          </select>
+          {errors.batchId && <p className="text-xs text-error mt-1">{errors.batchId}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-3">

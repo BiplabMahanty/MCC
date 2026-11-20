@@ -36,6 +36,7 @@ export const NAV = [
       { label: 'Courses', path: '/courses', icon: BookOpen },
       { label: 'Batches', path: '/batches', icon: Layers },
       { label: 'Subjects', path: '/subjects', icon: BookMarked },
+      { label: 'Chapters', path: '/chapters', icon: BookMarked },
     ],
   },
   {

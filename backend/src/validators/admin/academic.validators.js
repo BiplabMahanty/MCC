@@ -63,7 +63,6 @@ const subjectCreateSchema = z
   .object({
     name: z.string().trim().min(2).max(120),
     code,
-    courseId: objectId,
     teacherIds,
     description: z.string().trim().max(1000).default(''),
     isActive: z.boolean().default(true),
@@ -72,10 +71,24 @@ const subjectCreateSchema = z
 
 const subjectUpdateSchema = subjectCreateSchema.partial().strict();
 
+const chapterCreateSchema = z
+  .object({
+    name: z.string().trim().min(2).max(160),
+    code: code.optional().default(''),
+    subjectId: objectId,
+    description: z.string().trim().max(1000).default(''),
+    sortOrder: z.coerce.number().int().min(0).max(100000).default(0),
+    isActive: z.boolean().default(true),
+  })
+  .strict();
+
+const chapterUpdateSchema = chapterCreateSchema.partial().strict();
+
 const academicListQuerySchema = z
   .object({
     ...paginationFields,
     courseId: objectId.optional(),
+    subjectId: objectId.optional(),
   })
   .strict();
 
@@ -87,4 +100,6 @@ module.exports = {
   courseUpdateSchema,
   subjectCreateSchema,
   subjectUpdateSchema,
+  chapterCreateSchema,
+  chapterUpdateSchema,
 };

@@ -48,7 +48,7 @@ function useSubjects() {
   return { subjects, loading };
 }
 
-function useQuestions(subjectId) {
+function useQuestions(subjectId, chapterId) {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -59,7 +59,7 @@ function useQuestions(subjectId) {
     }
 
     setLoading(true);
-    apiRequest(`/admin/questions?subjectId=${subjectId}&isActive=true&limit=100`, {
+    apiRequest(`/admin/questions?subjectId=${subjectId}&${chapterId ? `chapterId=${chapterId}&` : ''}isActive=true&limit=100`, {
       auth: true,
     })
       .then((res) => {
@@ -70,7 +70,7 @@ function useQuestions(subjectId) {
         setQuestions([]);
       })
       .finally(() => setLoading(false));
-  }, [subjectId]);
+  }, [subjectId, chapterId]);
 
   return { questions, loading };
 }
@@ -167,7 +167,9 @@ export default function QuestionSetFormScreen({ navigation, route }) {
   const { data: existing, isLoading: loadingExisting } = useQuestionSet(isEdit ? id : null);
   const { subjects, loading: loadingSubjects } = useSubjects();
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
-  const { questions, loading: loadingQuestions } = useQuestions(selectedSubjectId);
+  const [selectedChapterId, setSelectedChapterId] = useState('');
+  const { questions, loading: loadingQuestions } = useQuestions(selectedSubjectId, selectedChapterId);
+  const [chapters, setChapters] = useState([]);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -193,6 +195,13 @@ export default function QuestionSetFormScreen({ navigation, route }) {
     );
     setIsActive(existing.isActive ?? true);
   }, [existing]);
+
+  useEffect(() => {
+    if (!selectedSubjectId) { setChapters([]); setSelectedChapterId(''); return; }
+    apiRequest(`/admin/chapters?subjectId=${selectedSubjectId}&isActive=true&limit=100`, { auth: true })
+      .then((res) => setChapters(res.data || []))
+      .catch(() => setChapters([]));
+  }, [selectedSubjectId]);
 
   const handleSubmit = async () => {
     if (!name.trim()) return Alert.alert('Error', 'Name is required.');
@@ -293,6 +302,7 @@ export default function QuestionSetFormScreen({ navigation, route }) {
                 onPress={() => {
                   setSubjectId(s._id);
                   setSelectedSubjectId(s._id);
+                  setSelectedChapterId('');
                   setQuestionIds([]);
                 }}
               >
@@ -309,6 +319,22 @@ export default function QuestionSetFormScreen({ navigation, route }) {
           </View>
         )}
       </View>
+
+      {selectedSubjectId && chapters.length > 0 && (
+        <View style={styles.field}>
+          <Text style={styles.label}>Chapter filter</Text>
+          <View style={styles.subjectList}>
+            <Pressable style={[styles.subjectChip, !selectedChapterId && styles.subjectChipActive]} onPress={() => { setSelectedChapterId(''); setQuestionIds([]); }}>
+              <Text style={[styles.subjectChipText, !selectedChapterId && styles.subjectChipTextActive]}>All chapters</Text>
+            </Pressable>
+            {chapters.map((chapter) => (
+              <Pressable key={chapter._id} style={[styles.subjectChip, selectedChapterId === chapter._id && styles.subjectChipActive]} onPress={() => { setSelectedChapterId(chapter._id); setQuestionIds([]); }}>
+                <Text style={[styles.subjectChipText, selectedChapterId === chapter._id && styles.subjectChipTextActive]}>{chapter.name}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
 
       {/* Active toggle */}
       <View style={styles.field}>
