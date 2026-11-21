@@ -19,7 +19,40 @@ import { useAdminOptions } from '../../admin/hooks/useAdminEntities';
 import QuestionEditor from '../components/QuestionEditor';
 import { useQuestion, useSaveQuestion } from '../hooks/useQuestions';
 
-function initialQuestion(record) {
+function normalizeBlock(block) {
+  const hasTableData =
+    block?.type === 'table' ||
+    block?.headers?.length > 0 ||
+    block?.rows?.length > 0;
+
+  if (hasTableData) {
+    return {
+      type: 'table',
+      caption: block.caption || '',
+      headers: block.headers || [],
+      rows: block.rows || [],
+    };
+  }
+
+  if (block?.type === 'image') {
+    return {
+      type: 'image',
+      url: block.url,
+      storageKey: block.storageKey,
+      alt: block.alt || '',
+      mimeType: block.mimeType,
+      ...(block.width > 0 && { width: block.width }),
+      ...(block.height > 0 && { height: block.height }),
+    };
+  }
+
+  return {
+    type: block?.type === 'formula' ? 'formula' : 'text',
+    value: block?.value || '',
+  };
+}
+
+function initialQuestion(record, defaults = {}) {
   if (record) {
     return {
       subjectId:
@@ -32,16 +65,18 @@ function initialQuestion(record) {
           : record.chapterId || '',
       topic: record.topic,
       difficulty: record.difficulty,
-      content: record.content,
-      options: record.options.map((option) => ({ content: option.content })),
+      content: record.content.map(normalizeBlock),
+      options: record.options.map((option) => ({
+        content: option.content.map(normalizeBlock),
+      })),
       correctOptionIndex: record.correctOptionIndex,
       isActive: record.isActive,
     };
   }
 
   return {
-    subjectId: '',
-    chapterId: '',
+    subjectId: defaults.subjectId || '',
+    chapterId: defaults.chapterId || '',
     topic: '',
     difficulty: 'medium',
     content: [{ type: 'text', value: '' }],
@@ -104,11 +139,26 @@ function validate(question) {
   return errors;
 }
 
-function FormContent({ navigation, id, record, subjects, chapters }) {
-  const [question, setQuestion] = useState(() => initialQuestion(record));
+function FormContent({
+  navigation,
+  id,
+  record,
+  subjects,
+  chapters,
+  initialSubjectId,
+  initialChapterId,
+}) {
+  const [question, setQuestion] = useState(() =>
+    initialQuestion(record, {
+      subjectId: initialSubjectId,
+      chapterId: initialChapterId,
+    }),
+  );
   const [errors, setErrors] = useState({});
   const saveMutation = useSaveQuestion(id);
-  const chaptersQuery = useAdminOptions('chapters', !!question.subjectId, { subjectId: question.subjectId });
+  const chaptersQuery = useAdminOptions('chapters', !!question.subjectId, {
+    subjectId: question.subjectId,
+  });
 
   async function save() {
     const nextErrors = validate(question);
@@ -169,13 +219,21 @@ function FormContent({ navigation, id, record, subjects, chapters }) {
 }
 
 export default function QuestionFormScreen({ navigation, route }) {
-  const { id } = route.params;
+  const { id, initialSubjectId, initialChapterId } = route.params ?? {};
   const questionQuery = useQuestion('admin', id);
   const subjectsQuery = useAdminOptions('subjects');
-  const subjectId = questionQuery.data?.data?.subjectId?._id || questionQuery.data?.data?.subjectId || '';
+  const subjectId =
+    questionQuery.data?.data?.subjectId?._id ||
+    questionQuery.data?.data?.subjectId ||
+    initialSubjectId ||
+    '';
   const chaptersQuery = useAdminOptions('chapters', !!subjectId, { subjectId });
 
-  if ((id && questionQuery.isPending) || subjectsQuery.isPending || chaptersQuery.isPending) {
+  if (
+    (id && questionQuery.isPending) ||
+    subjectsQuery.isPending ||
+    (subjectId && chaptersQuery.isPending)
+  ) {
     return (
       <Screen>
         <Loader message="Loading question editor..." />
@@ -183,7 +241,8 @@ export default function QuestionFormScreen({ navigation, route }) {
     );
   }
 
-  const error = questionQuery.error || subjectsQuery.error || chaptersQuery.error;
+  const error =
+    questionQuery.error || subjectsQuery.error || chaptersQuery.error;
   if (error) {
     return (
       <Screen>
@@ -194,7 +253,11 @@ export default function QuestionFormScreen({ navigation, route }) {
             if (subjectsQuery.error) subjectsQuery.refetch();
             if (chaptersQuery.error) chaptersQuery.refetch();
           }}
-        retrying={questionQuery.isFetching || subjectsQuery.isFetching || chaptersQuery.isFetching}
+          retrying={
+            questionQuery.isFetching ||
+            subjectsQuery.isFetching ||
+            chaptersQuery.isFetching
+          }
         />
       </Screen>
     );
@@ -209,6 +272,8 @@ export default function QuestionFormScreen({ navigation, route }) {
         record={questionQuery.data?.data}
         subjects={subjectsQuery.data?.data || []}
         chapters={chaptersQuery.data?.data || []}
+        initialSubjectId={initialSubjectId}
+        initialChapterId={initialChapterId}
       />
     </Screen>
   );

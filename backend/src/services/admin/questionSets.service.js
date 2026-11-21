@@ -32,10 +32,11 @@ async function validateRelations(instituteId, input) {
         _id: { $in: input.questionIds },
         instituteId,
         isDeleted: false,
+        ...(input.subjectId && { subjectId: input.subjectId }),
       }).then((count) => {
         if (count !== input.questionIds.length)
           throw new AppError(
-            'One or more questions not found.',
+            'One or more questions were not found or do not belong to this subject.',
             400,
             'INVALID_QUESTION',
           );
@@ -124,7 +125,10 @@ async function update(instituteId, userId, id, input) {
 
   if (!set) throw new AppError('Question set not found.', 404, 'NOT_FOUND');
 
-  await validateRelations(instituteId, input);
+  await validateRelations(instituteId, {
+    ...input,
+    subjectId: input.subjectId || set.subjectId,
+  });
 
   Object.assign(set, input, {
     updatedBy: userId,
